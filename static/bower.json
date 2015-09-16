@@ -1,0 +1,11 @@
+{
+  "name": "kalakukko",
+  "version": "0.0.0",
+  "description": "kalakukko",
+  "private": true,
+  "dependencies": {
+    "fira": "mozilla/Fira",
+    "jquery": "~2.1.4",
+    "skeleton": "~2.0.4"
+  }
+}
