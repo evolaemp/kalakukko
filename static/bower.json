@@ -6,6 +6,7 @@
   "dependencies": {
     "fira": "mozilla/Fira",
     "jquery": "~2.1.4",
+    "leaflet": "~0.7.5",
     "skeleton": "~2.0.4"
   }
 }

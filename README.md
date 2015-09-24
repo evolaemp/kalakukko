@@ -31,7 +31,7 @@ You should include at least the following settings:
 * `EMAIL_BACKEND` (e.g. `locmem` for testing and `console` for developing),
   `DEFAULT_FROM_EMAIL`, `EMAIL_SUBJECT_PREFIX`
 * `ADMINS`, `MANAGERS`
-* `GOOGLE_API_KEY` (needed for Google Maps)
+* `OSM_ACCESS_TOKEN`, `OSM_ID` (auth for an Open Street Maps tile provider)
 
 There is an example configuration in `project/settings_local.example`. You can
 use it for local development by copying the file (do not move it, as this would

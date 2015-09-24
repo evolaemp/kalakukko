@@ -16,3 +16,13 @@ Welcome to Kalakukko!
 	</div>
 </div>
 {% endblock %}
+
+{% block scripts %}
+{% autoescape off %}
+<script type="text/javascript">
+var LANGUAGES = {{ languages }};
+var OSM_ACCESS_TOKEN = '{{ OSM_ACCESS_TOKEN }}';
+var OSM_ID = '{{ OSM_ID }}';
+</script>
+{% endautoescape %}
+{% endblock %}

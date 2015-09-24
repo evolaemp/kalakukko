@@ -26,5 +26,16 @@ class Language(models.Model):
 		Returns the model's string representation.
 		"""
 		return self.iso_639_3
+	
+	def to_dict(self):
+		"""
+		Returns the model instance as a dictionary.
+		"""
+		return {
+			'iso_639_3': self.iso_639_3,
+			'iso_639_1': self.iso_639_1,
+			'latitude': self.latitude,
+			'longitude': self.longitude
+		}
 
 

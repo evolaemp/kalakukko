@@ -53,7 +53,11 @@ gulp.task('scripts', function() {
 // task: handle dependencies
 gulp.task('dependencies', function() {
 	// skeleton
-	gulp.src('bower_components/skeleton/css/*.css')
+	// leaflet
+	gulp.src([
+			'bower_components/skeleton/css/*.css',
+			'bower_components/leaflet/dist/leaflet.css'
+		])
 		.pipe(less({
 			plugins: [cleanCss]
 		}))
@@ -61,8 +65,10 @@ gulp.task('dependencies', function() {
 		.pipe(gulp.dest('build/styles'));
 	
 	// jquery
+	// leaflet
 	gulp.src([
-			'bower_components/jquery/dist/jquery.min.js'
+			'bower_components/jquery/dist/jquery.min.js',
+			'bower_components/leaflet/dist/leaflet.js'
 		])
 		.pipe(concat('vendor.js'))
 		.pipe(gulp.dest('build/scripts'));

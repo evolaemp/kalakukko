@@ -4,22 +4,36 @@
  * @module
  * 
  * @requires jQuery
+ * @requires app.*
  */
 var app = (function() {
 	
 	"use strict";
 	
+	
+	/**
+	 * Class definition for the global controller.
+	 * 
+	 * @class
+	 */
+	var App = function() {
+		var self = this;
+		
+		self.map = null;
+	};
+	
 	/**
 	 * Common AJAX setup.
 	 */
-	var ajax = {
+	App.prototype.ajax = {
 		init: function() {
+			var self = this;
 			$.ajaxSetup({
 				beforeSend: function(xhr, settings) {
 					if(!this.crossDomain) {
 						xhr.setRequestHeader(
 							'X-CSRFToken',
-							utils.getCookie('csrftoken')
+							self.utils.getCookie('csrftoken')
 						);
 					}
 				},
@@ -29,11 +43,11 @@ var app = (function() {
 		}
 	};
 	
-	
 	/**
 	 * Various utils.
 	 */
-	var utils = {
+	App.prototype.utils = {
+		
 		/**
 		 * Gives cookies.
 		 * 
@@ -59,10 +73,34 @@ var app = (function() {
 	
 	
 	/**
-	 * Brrmm, brrrrm!
+	 * Init (before DOM ready).
+	 */
+	var appInstance = new App();
+	
+	
+	/**
+	 * Init (after DOM ready).
 	 */
 	$(document).ready(function() {
-		ajax.init();
+		appInstance.ajax.init();
+		
+		/* app.maps */
+		var domQuery = $('[data-maps=map]');
+		if(domQuery.length) {
+			domQuery.each(function() {
+				appInstance.map = new app.maps.Map($(this));
+				
+				var i, language = null;
+				for(i = 0; i < LANGUAGES.length; i++) {
+					language  = LANGUAGES[i];
+					appInstance.map.addMarker(
+						language.iso_639_3,
+						language.latitude,
+						language.longitude
+					);
+				}
+			});
+		}
 	});
 	
 	
@@ -70,7 +108,10 @@ var app = (function() {
 	 * Module exports.
 	 */
 	return {
-		utils: utils
+		getMap: function() {
+			return appInstance.map;
+		},
+		utils: appInstance.utils
 	};
 	
 }());
