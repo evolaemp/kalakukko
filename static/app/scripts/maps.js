@@ -4,6 +4,7 @@
  * @module
  * 
  * @requires jQuery
+ * @requires signals
  * @requires L
  * @requires app.messages
  */
@@ -38,6 +39,11 @@ app.maps = (function() {
 		).addTo(self.map);
 		
 		self.markers = {};
+		
+		/**
+		 * Fired when language marker is clicked.
+		 */
+		self.languageSelected = new signals.Signal();
 	};
 	
 	/**
@@ -59,6 +65,8 @@ app.maps = (function() {
 			icon: icon
 		}).addTo(self.map);
 		
+		marker.on('click', self.handleMarkerClick.bind(self));
+		
 		self.markers[id] = marker;
 	};
 	
@@ -72,22 +80,106 @@ app.maps = (function() {
 		
 		if(self.markers.hasOwnProperty(id)) {
 			self.map.removeLayer(self.markers[id]);
+			self.markers[id].off();
 			delete self.markers[id];
 		}
 	};
 	
-	OpenStreetMap.prototype.turnHeatOn = function() {
+	/**
+	 * Event handler for clicking on markers.
+	 * Attached to DOM in self.addMarker().
+	 * 
+	 * @param The L-augmented event.
+	 */
+	OpenStreetMap.prototype.handleMarkerClick = function(e) {
+		var self = this;
+		var id = $(e.originalEvent.target).html();
+		
+		self.languageSelected.dispatch(id);
+	};
+	
+	/**
+	 * Turns the heat on!
+	 */
+	OpenStreetMap.prototype.turnHeatOn = function(origin, distances) {
+		var self = this;
+		
+		var keys = Object.keys(self.markers);
+		var key = null;
+		
+		var redness = null;
+		var nonRedness = null;
+		
+		for(var i = 0; i < keys.length; i++) {
+			key = keys[i];
+			if(key == origin) {
+				self.markers[key]._icon.style.backgroundColor = 'red';
+				continue;
+			}
+			if(!distances.hasOwnProperty(key)) {
+				continue;
+			}
+			
+			redness = parseInt((1 - distances[key]) * 255);
+			nonRedness = 255 - redness;
+			
+			self.markers[key]._icon.style.backgroundColor = 'rgb('+ redness +', '+ nonRedness +', '+ nonRedness +')';
+		}
+	};
+	
+	/**
+	 * Turns the heat off.
+	 */
+	OpenStreetMap.prototype.turnHeatOff = function() {
 		var self = this;
 	};
 	
 	
 	
 	/**
+	 * Class definition for archeo-linguistic maps.
 	 * 
+	 * @class
+	 * @param The map container as a jQuery element.
+	 * @param The languages to be displayed on the map.
 	 */
-	var Map = function(dom) {
+	var Map = function(dom, languages) {
 		var self = this;
-		self.map = new OpenStreetMap(dom);
+		self.paper = new OpenStreetMap(dom);
+		
+		for(var i = 0; i < languages.length; i++) {
+			self.paper.addMarker(
+				languages[i].iso_639_3,
+				languages[i].latitude,
+				languages[i].longitude
+			);
+		}
+		
+		self.paper.languageSelected.add(self.setOrigin, self);
+	};
+	
+	/**
+	 * Heats up the map showing the distances from the language given.
+	 * 
+	 * @param The new heat origin or null.
+	 * @return A promise.
+	 */
+	Map.prototype.setOrigin = function(languageId) {
+		var self = this;
+		
+		$.get(
+			'/api/distances/'+ languageId +'/'
+		)
+		.done(function(data) {
+			self.paper.turnHeatOn(languageId, data.distances);
+		})
+		.fail(function(jqXHR) {
+			var error = "Could not connect to server!";
+			try {
+				error = jqXHR.responseJSON.error;
+			} catch (e) {}
+			app.messages.error(error);
+		});
 	};
 	
 	
@@ -96,7 +188,7 @@ app.maps = (function() {
 	 * Module exports.
 	 */
 	return {
-		Map: OpenStreetMap
+		Map: Map
 	};
 	
 }());

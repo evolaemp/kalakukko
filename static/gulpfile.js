@@ -65,9 +65,11 @@ gulp.task('dependencies', function() {
 		.pipe(gulp.dest('build/styles'));
 	
 	// jquery
+	// signals
 	// leaflet
 	gulp.src([
 			'bower_components/jquery/dist/jquery.min.js',
+			'bower_components/js-signals/dist/signals.min.js',
 			'bower_components/leaflet/dist/leaflet.js'
 		])
 		.pipe(concat('vendor.js'))

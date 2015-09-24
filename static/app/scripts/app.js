@@ -12,28 +12,16 @@ var app = (function() {
 	
 	
 	/**
-	 * Class definition for the global controller.
-	 * 
-	 * @class
-	 */
-	var App = function() {
-		var self = this;
-		
-		self.map = null;
-	};
-	
-	/**
 	 * Common AJAX setup.
 	 */
-	App.prototype.ajax = {
+	var ajax = {
 		init: function() {
-			var self = this;
 			$.ajaxSetup({
 				beforeSend: function(xhr, settings) {
 					if(!this.crossDomain) {
 						xhr.setRequestHeader(
 							'X-CSRFToken',
-							self.utils.getCookie('csrftoken')
+							utils.getCookie('csrftoken')
 						);
 					}
 				},
@@ -43,11 +31,11 @@ var app = (function() {
 		}
 	};
 	
+	
 	/**
 	 * Various utils.
 	 */
-	App.prototype.utils = {
-		
+	var utils = {
 		/**
 		 * Gives cookies.
 		 * 
@@ -75,30 +63,20 @@ var app = (function() {
 	/**
 	 * Init (before DOM ready).
 	 */
-	var appInstance = new App();
+	var mapInstance = null;
 	
 	
 	/**
 	 * Init (after DOM ready).
 	 */
 	$(document).ready(function() {
-		appInstance.ajax.init();
+		ajax.init();
 		
 		/* app.maps */
 		var domQuery = $('[data-maps=map]');
 		if(domQuery.length) {
 			domQuery.each(function() {
-				appInstance.map = new app.maps.Map($(this));
-				
-				var i, language = null;
-				for(i = 0; i < LANGUAGES.length; i++) {
-					language  = LANGUAGES[i];
-					appInstance.map.addMarker(
-						language.iso_639_3,
-						language.latitude,
-						language.longitude
-					);
-				}
+				mapInstance = new app.maps.Map($(this), LANGUAGES);
 			});
 		}
 	});
@@ -109,9 +87,9 @@ var app = (function() {
 	 */
 	return {
 		getMap: function() {
-			return appInstance.map;
+			return mapInstance;
 		},
-		utils: appInstance.utils
+		utils: utils
 	};
 	
 }());
