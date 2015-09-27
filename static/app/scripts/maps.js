@@ -6,7 +6,6 @@
  * @requires jQuery
  * @requires signals
  * @requires L
- * @requires app.messages
  */
 app.maps = (function() {
 	
@@ -28,7 +27,7 @@ app.maps = (function() {
 		self.map = L.map(self.dom.get(0));
 		self.map.setView([42, 42], 5);
 		
-		L.tileLayer(
+		/*L.tileLayer(
 			'https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}',
 			{
 				attribution: '<a href="http://openstreetmap.org">OpenStreetMap</a>',
@@ -36,7 +35,7 @@ app.maps = (function() {
 				id: OSM_ID,
 				maxZoom: 15
 			}
-		).addTo(self.map);
+		).addTo(self.map);*/
 		
 		self.markers = {};
 		
@@ -132,63 +131,20 @@ app.maps = (function() {
 	 */
 	OpenStreetMap.prototype.turnHeatOff = function() {
 		var self = this;
-	};
-	
-	
-	
-	/**
-	 * Class definition for archeo-linguistic maps.
-	 * 
-	 * @class
-	 * @param The map container as a jQuery element.
-	 * @param The languages to be displayed on the map.
-	 */
-	var Map = function(dom, languages) {
-		var self = this;
-		self.paper = new OpenStreetMap(dom);
 		
-		for(var i = 0; i < languages.length; i++) {
-			self.paper.addMarker(
-				languages[i].iso_639_3,
-				languages[i].latitude,
-				languages[i].longitude
-			);
+		var keys = Object.keys(self.markers);
+		
+		for(var i = 0; i < keys.length; i++) {
+			self.markers[keys[i]]._icon.style.backgroundColor = null;
 		}
-		
-		self.paper.languageSelected.add(self.setOrigin, self);
 	};
-	
-	/**
-	 * Heats up the map showing the distances from the language given.
-	 * 
-	 * @param The new heat origin or null.
-	 * @return A promise.
-	 */
-	Map.prototype.setOrigin = function(languageId) {
-		var self = this;
-		
-		$.get(
-			'/api/distances/'+ languageId +'/'
-		)
-		.done(function(data) {
-			self.paper.turnHeatOn(languageId, data.distances);
-		})
-		.fail(function(jqXHR) {
-			var error = "Could not connect to server!";
-			try {
-				error = jqXHR.responseJSON.error;
-			} catch (e) {}
-			app.messages.error(error);
-		});
-	};
-	
 	
 	
 	/**
 	 * Module exports.
 	 */
 	return {
-		Map: Map
+		OpenStreetMap: OpenStreetMap
 	};
 	
 }());

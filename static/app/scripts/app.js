@@ -4,7 +4,6 @@
  * @module
  * 
  * @requires jQuery
- * @requires app.*
  */
 var app = (function() {
 	
@@ -61,24 +60,10 @@ var app = (function() {
 	
 	
 	/**
-	 * Init (before DOM ready).
-	 */
-	var mapInstance = null;
-	
-	
-	/**
-	 * Init (after DOM ready).
+	 * Init.
 	 */
 	$(document).ready(function() {
 		ajax.init();
-		
-		/* app.maps */
-		var domQuery = $('[data-maps=map]');
-		if(domQuery.length) {
-			domQuery.each(function() {
-				mapInstance = new app.maps.Map($(this), LANGUAGES);
-			});
-		}
 	});
 	
 	
@@ -86,9 +71,6 @@ var app = (function() {
 	 * Module exports.
 	 */
 	return {
-		getMap: function() {
-			return mapInstance;
-		},
 		utils: utils
 	};
 	

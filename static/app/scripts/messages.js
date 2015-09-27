@@ -60,10 +60,12 @@ app.messages = (function() {
 		error: function(text) {
 			exports.clear();
 			current = new Message('error', text);
+			setTimeout(exports.clear, 5000);
 		},
 		info: function(text) {
 			exports.clear();
 			current = new Message('info', text);
+			setTimeout(exports.clear, 5000);
 		},
 		success: function(text) {
 			exports.clear();

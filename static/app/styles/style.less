@@ -2,8 +2,10 @@
 
 /**
  * colours
+ * http://www.colourlovers.com/palette/124429
  */
 @blue: #4A748C;
+@orange: #EA7525;
 
 
 /**
@@ -35,10 +37,50 @@ body {
 	text-rendering: optimizeLegibility;
 }
 
+button {
+	color: inherit;
+	font-size: inherit;
+	font-weight: inherit;
+	height: 50px;
+	letter-spacing: normal;
+	line-height: 50px;
+	margin: 0;
+	text-transform: none;
+}
+
 
 /**
  * along the tree
  */
+header {
+	line-height: 50px;
+	padding: 20px 10px 15px 10px;
+	h1 {
+		font-size: 50px;
+		line-height: 50px;
+		margin: 0;
+	}
+	.controls {
+		.hidden {
+			visibility: hidden;
+		}
+		select {
+			margin: 0;
+			width: 100%;
+		}
+		input[type=text] {
+			margin: 0;
+			width: 100%;
+		}
+		input[type=file] {
+			display: none;
+		}
+		button {
+			width: 100%;
+		}
+	}
+}
+
 .map {
 	height: 500px;
 	width: 100%;
@@ -55,6 +97,30 @@ body {
 		opacity: 0.9;
 		text-align: center;
 		width: 24px !important;
+	}
+}
+
+footer {
+	.messages {
+		bottom: 10px;
+		left: 10px;
+		position: absolute;
+		.message {
+			color: white;
+			font-size: 18px;
+			height: 50px;
+			line-height: 50px;
+			padding: 0 18px;
+			&.error {
+				background-color: @orange;
+			}
+			&.success {
+				background-color: @blue;
+			}
+			&.info {
+				background-color: @blue;
+			}
+		}
 	}
 }
 

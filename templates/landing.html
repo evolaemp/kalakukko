@@ -6,16 +6,42 @@ Welcome to Kalakukko!
 {% block title %}Hallo{% endblock %}
 
 
-{% block main %}
+{% block controls %}
 <div class="row">
-	<div class="twelve columns">
-		<div class="map" data-maps="map"></div>
+	<div class="three columns">
+		<select name="variable" class="hidden">
+			<option>radius</option>
+			<option>nearest</option>
+		</select>
 	</div>
-	<!--div class="three columns">
-		
-	</div-->
+	<div class="three columns">
+		<input type="text"
+			name="value"
+			value="2000"
+			class="hidden"
+			/>
+	</div>
+	<div class="three columns">
+		<select name="mode" class="hidden">
+			<option value="point">pointmap</option>
+			<option value="heat">heatmap</option>
+		</select>
+	</div>
+	<div class="three columns">
+		<input type="file" name="file" />
+		<button type="button"
+			>set source</button>
+	</div>
 </div>
 {% endblock %}
+
+
+{% block main %}
+<div class="row">
+	<div class="map" data-maps="map"></div>
+</div>
+{% endblock %}
+
 
 {% block scripts %}
 {% autoescape off %}

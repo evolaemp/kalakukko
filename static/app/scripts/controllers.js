@@ -1,0 +1,280 @@
+/**
+ * Home of the controllers.
+ * 
+ * @module
+ * 
+ * @requires jQuery
+ * @requires signals
+ * @requires app.maps
+ * @requires app.messages
+ * @requires app.modes
+ */
+app.controllers = (function() {
+	
+	"use strict";
+	
+	
+	/**
+	 * Class definition for the main controller.
+	 * 
+	 * @class
+	 */
+	var Controller = function() {
+		var self = this;
+		
+		self.dom = null;
+		self.map = null;
+		self.mode = null;
+		
+		self.switchedMode = new signals.Signal();
+		self.uploadedFile = new signals.Signal();
+	};
+	
+	/**
+	 * Inits self.dom, self.map, self.mode.
+	 * Called upon the document ready event.
+	 */
+	Controller.prototype.init = function() {
+		var self = this;
+		
+		/* self.dom */
+		self.dom = $('header .controls');
+		
+		self.fileInput = new FileInput(
+			self.dom.find('input[name=file]'),
+			self.dom.find('button')
+		);
+		
+		self.modeSelect = new ModeSelect(self.dom.find('select[name=mode]'));
+		self.parameterSelect = new ParameterSelect(
+			self.dom.find('select[name=variable]')
+		);
+		self.parameterInput = new ParameterInput(
+			self.dom.find('input[name=value]')
+		);
+		
+		/* self.map */
+		var mapElement = $('[data-maps=map]');
+		
+		if(mapElement.length != 1) {
+			app.messages.error('Map not found.');
+			return;
+		}
+		
+		self.map = new app.maps.OpenStreetMap(mapElement);
+		
+		for(var i = 0; i < LANGUAGES.length; i++) {
+			self.map.addMarker(
+				LANGUAGES[i].iso_639_3,
+				LANGUAGES[i].latitude,
+				LANGUAGES[i].longitude
+			);
+		}
+		
+		/* self.mode */
+		self.mode = new app.modes.NormalMode();
+		self.mode.bind(self.map);
+	};
+	
+	/**
+	 * Changes the mode.
+	 * 
+	 * @param The mode to switch to.
+	 */
+	Controller.prototype.switchMode = function(newMode) {
+		var self = this;
+		
+		self.mode.unbind();
+		
+		if(newMode == 'normal') {
+			self.mode = new app.modes.NormalMode();
+		}
+		else if(newMode == 'point') {
+			self.mode = new app.modes.PointMode();
+		}
+		else if(newMode == 'heat') {
+			self.mode = new app.modes.HeatMode();
+		}
+		else {
+			app.messages.error('Unknown mode requested.');
+			self.mode = new app.modes.NormalMode();
+			newMode = 'normal';
+		}
+		
+		self.mode.bind(self.map);
+		self.switchedMode.dispatch(newMode);
+	};
+	
+	/**
+	 * Uploads the file given through XHR.
+	 * 
+	 * @param File instance to be uploaded.
+	 * @returns Promise.
+	 */
+	Controller.prototype.uploadFile = function(file) {
+		var self = this;
+		var deferred = $.Deferred();
+		
+		app.messages.info('Loading file&hellip;');
+		
+		var formData = new FormData();
+		formData.append('file', file);
+		
+		$.ajax({
+			url: '/api/file/',
+			method: 'POST',
+			data: formData,
+			processData: false,
+			contentType: false
+		})
+		.done(function(data) {
+			console.log(data);
+			
+			app.messages.success('File loaded.');
+			deferred.resolve();
+		})
+		.fail(function(xhr) {
+			var error = 'File could not be loaded.';
+			try {
+				error = xhr.responseJSON.error;
+			} catch(e) {};
+			
+			app.messages.error('Error: ' + error);
+			deferred.reject();
+		});
+		
+		return deferred.promise();
+	};
+	
+	
+	/**
+	 * Follow some class definitions, one for each of the controls.
+	 */
+	/**
+	 * @class
+	 */
+	var ParameterSelect = function(dom) {
+		var self = this;
+		self.dom = dom;
+		
+		mainController.switchedMode.add(function(newMode) {
+			if(newMode == 'normal') {
+				self.dom.addClass('hidden');
+			}
+			else {
+				self.dom.removeClass('hidden');
+			}
+		});
+	};
+	
+	/**
+	 * @class
+	 */
+	var ParameterInput = function(dom) {
+		var self = this;
+		self.dom = dom;
+		
+		mainController.switchedMode.add(function(newMode) {
+			if(newMode == 'normal') {
+				self.dom.addClass('hidden');
+			}
+			else {
+				self.dom.removeClass('hidden');
+			}
+		});
+	};
+	
+	/**
+	 * @class
+	 */
+	var ModeSelect = function(dom) {
+		var self = this;
+		self.dom = dom;
+		
+		mainController.switchedMode.add(function(newMode) {
+			if(newMode == 'normal') {
+				self.dom.addClass('hidden');
+			}
+			else {
+				self.dom.removeClass('hidden');
+			}
+		});
+		
+		self.dom.on('change', function() {
+			mainController.switchMode(self.dom.val());
+		});
+	};
+	
+	/**
+	 * @class
+	 */
+	var FileInput = function(input, button) {
+		var self = this;
+		
+		self.input = input;
+		self.button = button;
+		
+		self.button.on('click', function() {
+			self.input.click();
+		});
+		
+		self.input.on('change', function() {
+			var fileList = self.input.get(0).files;
+			
+			if(fileList.length != 1) {
+				app.messages.error('No file selected.');
+				return;
+			}
+			self.button.prop('disabled', true);
+			
+			mainController.uploadFile(fileList[0])
+			.done(function() {
+				console.log('file input knows ja');
+			})
+			.fail(function() {
+				console.log('file input knows nein');
+			});
+		});
+		
+		mainController.uploadedFile.add(function() {
+			self.button.off();
+			self.button.html('berg.tsv');
+			self.button.prop('disabled', false);
+		});
+		
+		mainController.switchedMode.add(function(newMode) {
+			if(newMode == 'normal') {
+				self.button.off();
+				self.button.html('set source');
+				self.button.on('click', function() {
+					self.input.click();
+				});
+			}
+		});
+	};
+	
+	
+	/**
+	 * Init (before DOM ready).
+	 */
+	var mainController = new Controller();
+	
+	/**
+	 * Init (after DOM ready).
+	 */
+	$(document).ready(function() {
+		mainController.init();
+	});
+	
+	
+	/**
+	 * Module exports.
+	 */
+	return {
+		getMainController: function() {
+			return mainController;
+		},
+		Controller: Controller
+	};
+	
+}());

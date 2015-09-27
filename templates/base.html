@@ -14,20 +14,23 @@
 </head>
 <body>
 	<header>
-		<div class="container">
-			<div class="row">
-				<div class="twelve columns">
-					<h1>kalakukko</h1>
-				</div>
+		<div class="row">
+			<div class="six columns">
+				<h1>kalakukko</h1>
+			</div>
+			<div class="six columns controls">
+				{% block controls %}{% endblock %}
 			</div>
 		</div>
 	</header>
 	
 	<main>
-		<div class="container">
-			{% block main %}{% endblock %}
-		</div>
+		{% block main %}{% endblock %}
 	</main>
+	
+	<footer>
+		<div class="messages"></div>
+	</footer>
 	
 	<script type="text/javascript" src="{% static 'scripts/vendor.js' %}" defer></script>
 	<script type="text/javascript" src="{% static 'scripts/app.js' %}" defer></script>
