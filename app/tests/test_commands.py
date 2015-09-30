@@ -65,14 +65,9 @@ class ExtractLanguagesTestCase(TestCase):
 
 
 class HarvestLanguageInfoTestCase(TestCase):
+	fixtures = ['languages.json']
+	
 	def setUp(self):
-		out = StringIO()
-		
-		args = ['app/fixtures/berg.tsv']
-		opts = {'stdout': out}
-		
-		call_command('extract_languages', *args, **opts)
-		
 		self.stdout = StringIO()
 		self.stderr = StringIO()
 		

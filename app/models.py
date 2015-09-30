@@ -21,6 +21,17 @@ class Language(models.Model):
 	class Meta:
 		ordering = ['iso_639_3']
 	
+	@property
+	def iso_code(self):
+		"""
+		Equals to ISO 639-1 if available and ISO 639-3 otherwise.
+		That is how languages are referred to in .tsv files.
+		"""
+		if self.iso_639_1:
+			return self.iso_639_1
+		else:
+			return self.iso_639_3
+	
 	def __str__(self):
 		"""
 		Returns the model's string representation.

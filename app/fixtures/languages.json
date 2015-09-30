@@ -1,0 +1,692 @@
+[
+{
+ "fields": {
+  "longitude": 77.0,
+  "latitude": 25.0,
+  "iso_639_1": "hi",
+  "iso_639_3": "hin"
+ },
+ "pk": 1,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 44.0,
+  "latitude": 43.0,
+  "iso_639_1": "os",
+  "iso_639_3": "oss"
+ },
+ "pk": 2,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 15.98,
+  "latitude": 45.82,
+  "iso_639_1": "hr",
+  "iso_639_3": "hrv"
+ },
+ "pk": 3,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": -3.0,
+  "latitude": 52.0,
+  "iso_639_1": "cy",
+  "iso_639_3": "cym"
+ },
+ "pk": 4,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": null,
+  "latitude": null,
+  "iso_639_1": "sq",
+  "iso_639_3": "sqi"
+ },
+ "pk": 5,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": null,
+  "latitude": null,
+  "iso_639_1": "zh",
+  "iso_639_3": "zho"
+ },
+ "pk": 6,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 44.0,
+  "latitude": 42.0,
+  "iso_639_1": "ka",
+  "iso_639_3": "kat"
+ },
+ "pk": 7,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 72.0,
+  "latitude": 69.0,
+  "iso_639_1": null,
+  "iso_639_3": "yrk"
+ },
+ "pk": 8,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 82.8,
+  "latitude": 43.7,
+  "iso_639_1": null,
+  "iso_639_3": "xal"
+ },
+ "pk": 9,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 140.0,
+  "latitude": 37.0,
+  "iso_639_1": "ja",
+  "iso_639_3": "jpn"
+ },
+ "pk": 10,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 46.58,
+  "latitude": 43.25,
+  "iso_639_1": "ce",
+  "iso_639_3": "che"
+ },
+ "pk": 11,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 47.42,
+  "latitude": 42.25,
+  "iso_639_1": null,
+  "iso_639_3": "dar"
+ },
+ "pk": 12,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 45.0,
+  "latitude": 40.0,
+  "iso_639_1": "hy",
+  "iso_639_3": "hye"
+ },
+ "pk": 13,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": -151.54,
+  "latitude": 59.99,
+  "iso_639_1": "ru",
+  "iso_639_3": "rus"
+ },
+ "pk": 14,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 22.0,
+  "latitude": 39.0,
+  "iso_639_1": "el",
+  "iso_639_3": "ell"
+ },
+ "pk": 15,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": -4.0,
+  "latitude": 40.0,
+  "iso_639_1": "es",
+  "iso_639_3": "spa"
+ },
+ "pk": 16,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 40.58,
+  "latitude": 45.23,
+  "iso_639_1": null,
+  "iso_639_3": "ady"
+ },
+ "pk": 17,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 45.9,
+  "latitude": 42.26,
+  "iso_639_1": null,
+  "iso_639_3": "ddo"
+ },
+ "pk": 18,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 37.0,
+  "latitude": 67.0,
+  "iso_639_1": null,
+  "iso_639_3": "sjd"
+ },
+ "pk": 19,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": null,
+  "latitude": null,
+  "iso_639_1": "uz",
+  "iso_639_3": "uzb"
+ },
+ "pk": 20,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 47.5,
+  "latitude": 55.5,
+  "iso_639_1": "cv",
+  "iso_639_3": "chv"
+ },
+ "pk": 21,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": null,
+  "latitude": null,
+  "iso_639_1": "fa",
+  "iso_639_3": "fas"
+ },
+ "pk": 22,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 45.5,
+  "latitude": 53.0,
+  "iso_639_1": null,
+  "iso_639_3": "myv"
+ },
+ "pk": 23,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 62.0,
+  "latitude": 62.0,
+  "iso_639_1": null,
+  "iso_639_3": "mns"
+ },
+ "pk": 24,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 10.0,
+  "latitude": 56.0,
+  "iso_639_1": "da",
+  "iso_639_3": "dan"
+ },
+ "pk": 25,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 0.0,
+  "latitude": 52.0,
+  "iso_639_1": "en",
+  "iso_639_3": "eng"
+ },
+ "pk": 26,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 82.0,
+  "latitude": 65.0,
+  "iso_639_1": null,
+  "iso_639_3": "sel"
+ },
+ "pk": 27,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": -3.0,
+  "latitude": 43.0,
+  "iso_639_1": "eu",
+  "iso_639_3": "eus"
+ },
+ "pk": 28,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 44.0,
+  "latitude": 54.0,
+  "iso_639_1": null,
+  "iso_639_3": "mdf"
+ },
+ "pk": 29,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 58.0,
+  "latitude": 53.0,
+  "iso_639_1": "ba",
+  "iso_639_3": "bak"
+ },
+ "pk": 30,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 106.75,
+  "latitude": -6.17,
+  "iso_639_1": "id",
+  "iso_639_3": "ind"
+ },
+ "pk": 31,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 35.0,
+  "latitude": 39.0,
+  "iso_639_1": "tr",
+  "iso_639_3": "tur"
+ },
+ "pk": 32,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": -8.0,
+  "latitude": 39.0,
+  "iso_639_1": "pt",
+  "iso_639_3": "por"
+ },
+ "pk": 33,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 41.0,
+  "latitude": 43.08,
+  "iso_639_1": "ab",
+  "iso_639_3": "abk"
+ },
+ "pk": 34,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 24.0,
+  "latitude": 69.0,
+  "iso_639_1": "se",
+  "iso_639_3": "sme"
+ },
+ "pk": 35,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 70.0,
+  "latitude": 50.0,
+  "iso_639_1": "kk",
+  "iso_639_3": "kaz"
+ },
+ "pk": 36,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 20.0,
+  "latitude": 52.0,
+  "iso_639_1": "pl",
+  "iso_639_3": "pol"
+ },
+ "pk": 37,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 48.0,
+  "latitude": 57.0,
+  "iso_639_1": null,
+  "iso_639_3": "mhr"
+ },
+ "pk": 38,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 65.0,
+  "latitude": 65.0,
+  "iso_639_1": null,
+  "iso_639_3": "kca"
+ },
+ "pk": 39,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 25.0,
+  "latitude": 62.0,
+  "iso_639_1": "fi",
+  "iso_639_3": "fin"
+ },
+ "pk": 40,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 155.0,
+  "latitude": 69.0,
+  "iso_639_1": null,
+  "iso_639_3": "ykg"
+ },
+ "pk": 41,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 87.0,
+  "latitude": 64.0,
+  "iso_639_1": null,
+  "iso_639_3": "ket"
+ },
+ "pk": 42,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 20.0,
+  "latitude": 49.0,
+  "iso_639_1": "sk",
+  "iso_639_3": "slk"
+ },
+ "pk": 43,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 34.83,
+  "latitude": 31.5,
+  "iso_639_1": "he",
+  "iso_639_3": "heb"
+ },
+ "pk": 44,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 32.0,
+  "latitude": 64.0,
+  "iso_639_1": null,
+  "iso_639_3": "krl"
+ },
+ "pk": 45,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 2.0,
+  "latitude": 48.0,
+  "iso_639_1": "fr",
+  "iso_639_3": "fra"
+ },
+ "pk": 46,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 143.0,
+  "latitude": 43.0,
+  "iso_639_1": null,
+  "iso_639_3": "ain"
+ },
+ "pk": 47,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 137.0,
+  "latitude": 49.5,
+  "iso_639_1": null,
+  "iso_639_3": "gld"
+ },
+ "pk": 48,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": null,
+  "latitude": null,
+  "iso_639_1": null,
+  "iso_639_3": "bua"
+ },
+ "pk": 49,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": null,
+  "latitude": null,
+  "iso_639_1": "kv",
+  "iso_639_3": "kom"
+ },
+ "pk": 50,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": null,
+  "latitude": null,
+  "iso_639_1": null,
+  "iso_639_3": "nio"
+ },
+ "pk": 51,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 142.0,
+  "latitude": 53.33,
+  "iso_639_1": null,
+  "iso_639_3": "niv"
+ },
+ "pk": 52,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 12.0,
+  "latitude": 43.0,
+  "iso_639_1": "it",
+  "iso_639_3": "ita"
+ },
+ "pk": 53,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 8.0,
+  "latitude": 61.0,
+  "iso_639_1": "no",
+  "iso_639_3": "nor"
+ },
+ "pk": 54,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 49.5,
+  "latitude": 56.0,
+  "iso_639_1": "tt",
+  "iso_639_3": "tat"
+ },
+ "pk": 55,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": null,
+  "latitude": null,
+  "iso_639_1": "et",
+  "iso_639_3": "est"
+ },
+ "pk": 56,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": null,
+  "latitude": null,
+  "iso_639_1": "lv",
+  "iso_639_3": "lav"
+ },
+ "pk": 57,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": -173.0,
+  "latitude": 67.0,
+  "iso_639_1": null,
+  "iso_639_3": "ckt"
+ },
+ "pk": 58,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 158.0,
+  "latitude": 57.5,
+  "iso_639_1": null,
+  "iso_639_3": "itl"
+ },
+ "pk": 59,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 10.0,
+  "latitude": 52.0,
+  "iso_639_1": "de",
+  "iso_639_3": "deu"
+ },
+ "pk": 60,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": null,
+  "latitude": null,
+  "iso_639_1": "ar",
+  "iso_639_3": "ara"
+ },
+ "pk": 61,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": -17.0,
+  "latitude": 65.0,
+  "iso_639_1": "is",
+  "iso_639_3": "isl"
+ },
+ "pk": 62,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 30.0,
+  "latitude": 68.0,
+  "iso_639_1": null,
+  "iso_639_3": "sms"
+ },
+ "pk": 63,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 35.0,
+  "latitude": 60.0,
+  "iso_639_1": null,
+  "iso_639_3": "vep"
+ },
+ "pk": 64,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 24.0,
+  "latitude": 55.0,
+  "iso_639_1": "lt",
+  "iso_639_3": "lit"
+ },
+ "pk": 65,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 14.67,
+  "latitude": 63.0,
+  "iso_639_1": "sv",
+  "iso_639_3": "swe"
+ },
+ "pk": 66,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 52.5,
+  "latitude": 57.5,
+  "iso_639_1": null,
+  "iso_639_3": "udm"
+ },
+ "pk": 67,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 24.0,
+  "latitude": 56.83,
+  "iso_639_1": null,
+  "iso_639_3": "liv"
+ },
+ "pk": 68,
+ "model": "app.language"
+},
+{
+ "fields": {
+  "longitude": 26.67,
+  "latitude": 46.57,
+  "iso_639_1": "hu",
+  "iso_639_3": "hun"
+ },
+ "pk": 69,
+ "model": "app.language"
+}
+]

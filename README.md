@@ -28,6 +28,7 @@ You should include at least the following settings:
 * `STATICFILES_DIRS`, `STATIC_ROOT`, `STATIC_URL`
 * `MEDIA_ROOT`, `MEDIA_URL`
 * `DATABASES`
+* `CACHES` (needed for storing uploaded files for subsequent API requests)
 * `EMAIL_BACKEND` (e.g. `locmem` for testing and `console` for developing),
   `DEFAULT_FROM_EMAIL`, `EMAIL_SUBJECT_PREFIX`
 * `ADMINS`, `MANAGERS`
@@ -52,6 +53,8 @@ The following fixtures are provided for the purposes of unit testing:
   registration authority for ISO 639-3.
 * `app/fixtures/languages.tab` is used to harvest language information such as
   geographical coordinates.
+* `app/fixtures/languages.json` is the database dump of the languages found in
+  `app/fixtures/berg.tsv` extracted using the `extract_languages` command.
 
 
 ## Workflow

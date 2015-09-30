@@ -5,6 +5,7 @@ from app.models import Language
 from app.ling.word_matrix import WordMatrix
 
 
+
 class FileApiView(View):
 	def post(self, request):
 		"""
@@ -22,10 +23,15 @@ class FileApiView(View):
 			matrix.load_raw(f)
 		except ValueError as error:
 			return JsonResponse({'error': str(error)}, status=400)
+		except Exception as error:  # csv.Error
+			return JsonResponse({'error': 'File unreadable.'}, status=400)
 		
 		matrix.save()
 		
-		return JsonResponse({'id': matrix.get_id()}, status=200)
+		return JsonResponse({
+			'id': matrix.storage_id,
+			'name': f.name
+		}, status=200)
 	
 	
 	def validate_file(self, request):

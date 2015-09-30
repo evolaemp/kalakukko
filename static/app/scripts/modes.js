@@ -15,38 +15,55 @@ app.modes = (function() {
 		var self = this;
 	};
 	
-	NormalMode.prototype.bind = function(map) {
-		var self = this;
-		self.map = map;
-	};
+	/**
+	 * Hooks for adding the mode's signal handlers.
+	 * 
+	 * @param The map.
+	 */
+	NormalMode.prototype.bind = function(map) {};
 	
-	NormalMode.prototype.unbind = function() {
-		var self = this;
-	};
+	/**
+	 * Hook for removing the mode's signal handlers.
+	 */
+	NormalMode.prototype.unbind = function() {};
 	
 	
 	/**
 	 * Handles the state when valid data source file is uploaded.
 	 * 
 	 * @class
+	 * @param The file ID.
 	 */
-	var PointMode = function() {
+	var PointMode = function(fileId) {
 		var self = this;
+		self.fileId = fileId;
 	};
 	
+	/**
+	 * Hooks for adding the mode's signal handlers.
+	 * 
+	 * @param The map.
+	 */
 	PointMode.prototype.bind = function(map) {
 		var self = this;
 		self.map = map;
+		
+		self.map.clicked.add(self.click, self);
 	};
 	
-	PointMode.prototype.choose = function(languageId) {
+	/**
+	 * 
+	 */
+	PointMode.prototype.click = function(latitude, longitude) {
 		var self = this;
 		
-		$.get(
-			'/api/distances/'+ languageId +'/'
-		)
+		$.post('/api/point/', JSON.stringify({
+			id: self.fileId,
+			latitude: latitude,
+			longitude: longitude
+		}))
 		.done(function(data) {
-			self.map.turnHeatOn(languageId, data.distances);
+			console.log(data);
 		})
 		.fail(function(jqXHR) {
 			var error = "Could not connect to server!";
@@ -57,8 +74,12 @@ app.modes = (function() {
 		});
 	};
 	
+	/**
+	 * Hook for removing the mode's signal handlers.
+	 */
 	PointMode.prototype.unbind = function() {
 		var self = this;
+		self.map.clicked.remove(self.click);
 	};
 	
 	
@@ -66,9 +87,11 @@ app.modes = (function() {
 	 * Handles the state when the heatmap is requested.
 	 * 
 	 * @class
+	 * @param The file ID.
 	 */
-	var HeatMode = function() {
+	var HeatMode = function(fileId) {
 		var self = this;
+		self.fileId = fileId;
 	};
 	
 	HeatMode.prototype.bind = function(map) {

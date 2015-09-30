@@ -26,8 +26,12 @@ app.controllers = (function() {
 		self.map = null;
 		self.mode = null;
 		
+		self.fileId = null;
+		
+		/**
+		 * Fired upon change of mode.
+		 */
 		self.switchedMode = new signals.Signal();
-		self.uploadedFile = new signals.Signal();
 	};
 	
 	/**
@@ -64,7 +68,7 @@ app.controllers = (function() {
 		self.map = new app.maps.OpenStreetMap(mapElement);
 		
 		for(var i = 0; i < LANGUAGES.length; i++) {
-			self.map.addMarker(
+			self.map.addLanguage(
 				LANGUAGES[i].iso_639_3,
 				LANGUAGES[i].latitude,
 				LANGUAGES[i].longitude
@@ -74,6 +78,14 @@ app.controllers = (function() {
 		/* self.mode */
 		self.mode = new app.modes.NormalMode();
 		self.mode.bind(self.map);
+		
+		var lastFileId = localStorage.getItem('kalakukkoLastFileId');
+		var lastFileName = localStorage.getItem('kalakukkoLastFileName');
+		if(lastFileId != null && lastFileName != null) {
+			self.fileId = lastFileId;
+			self.fileInput.button.html(lastFileName);
+			self.switchMode('point');
+		}
 	};
 	
 	/**
@@ -90,10 +102,10 @@ app.controllers = (function() {
 			self.mode = new app.modes.NormalMode();
 		}
 		else if(newMode == 'point') {
-			self.mode = new app.modes.PointMode();
+			self.mode = new app.modes.PointMode(self.fileId);
 		}
 		else if(newMode == 'heat') {
-			self.mode = new app.modes.HeatMode();
+			self.mode = new app.modes.HeatMode(self.fileId);
 		}
 		else {
 			app.messages.error('Unknown mode requested.');
@@ -109,7 +121,7 @@ app.controllers = (function() {
 	 * Uploads the file given through XHR.
 	 * 
 	 * @param File instance to be uploaded.
-	 * @returns Promise.
+	 * @returns Promise that resolves into the file name.
 	 */
 	Controller.prototype.uploadFile = function(file) {
 		var self = this;
@@ -128,10 +140,14 @@ app.controllers = (function() {
 			contentType: false
 		})
 		.done(function(data) {
-			console.log(data);
+			self.fileId = data.id;
+			self.switchMode('point');
 			
+			deferred.resolve(data.name);
 			app.messages.success('File loaded.');
-			deferred.resolve();
+			
+			localStorage.setItem('kalakukkoLastFileId', data.id);
+			localStorage.setItem('kalakukkoLastFileName', data.name);
 		})
 		.fail(function(xhr) {
 			var error = 'File could not be loaded.';
@@ -228,18 +244,14 @@ app.controllers = (function() {
 			self.button.prop('disabled', true);
 			
 			mainController.uploadFile(fileList[0])
-			.done(function() {
-				console.log('file input knows ja');
+			.done(function(fileName) {
+				self.button.off();
+				self.button.html(fileName);
+				self.button.prop('disabled', false);
 			})
 			.fail(function() {
-				console.log('file input knows nein');
+				self.button.prop('disabled', false);
 			});
-		});
-		
-		mainController.uploadedFile.add(function() {
-			self.button.off();
-			self.button.html('berg.tsv');
-			self.button.prop('disabled', false);
 		});
 		
 		mainController.switchedMode.add(function(newMode) {
