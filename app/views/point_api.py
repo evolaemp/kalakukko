@@ -29,9 +29,19 @@ class PointApiView(View):
 			}, status=404)
 		
 		point = Point(post['latitude'], post['longitude'])
-		d = point.get_swadeshness(matrix, nearest=5)
 		
-		return JsonResponse({'d': d}, status=200)
+		try:
+			origin, d = point.get_swadeshness(
+				matrix,
+				method = post['method'],
+				parameter = post['parameter']
+			)
+		except ValueError as error:
+			return JsonResponse({'error': str(error)}, status=400)
+		
+		return JsonResponse({
+			'origin': origin, 'd': d
+		}, status=200)
 	
 	
 	def validate_post(self, request_body):
@@ -41,7 +51,7 @@ class PointApiView(View):
 		post = read_json(request_body)
 		
 		try:
-			assert len(post) == 3
+			assert len(post) == 5
 		except AssertionError:
 			raise ValueError('You cannot pass!')
 		
@@ -64,6 +74,20 @@ class PointApiView(View):
 			post['longitude'] = float(post['longitude'])
 		except (AssertionError, TypeError):
 			raise ValueError('Invalid longitude.')
+		
+		try:
+			assert 'method' in post
+			assert type(post['method']) is str
+			assert post['method'] in ('circle', 'neighbourhood',)
+		except AssertionError:
+			raise ValueError('Invalid method.')
+		
+		try:
+			assert 'parameter' in post
+			assert type(post['parameter']) is int
+			assert post['parameter'] > 0
+		except AssertionError:
+			raise ValueError('Invalid parameter.')
 		
 		return post
 

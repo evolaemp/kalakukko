@@ -20,20 +20,21 @@ class Point:
 		self.latitude = latitude
 		self.longitude = longitude
 	
-	def get_swadeshness(self, word_matrix, radius=None, nearest=None):
+	def get_swadeshness(self, word_matrix, method, parameter):
 		"""
 		Calculates the swadeshness of the area as defined by the parameter with
 		respect to the word matrix given.
-		The parameter is either radius or nearest, whichever is not None.
+		The method is either 'circle' or 'neighbourhood'.
+		The parameter must be positive integer.
 		"""
 		globe = Map()
 		
-		origin = globe.get_nearest(1)[0]
+		origin = globe.get_nearest(self.latitude, self.longitude, 1)[0]
 		
-		if radius is not None:
-			languages = globe.get_in_radius(radius)
-		elif nearest is not None:
-			languages = globe.get_nearest(nearest)
+		if method == 'circle':
+			languages = globe.get_in_radius(self.latitude, self.longitude, parameter)
+		elif method == 'neighbourhood':
+			languages = globe.get_nearest(self.latitude, self.longitude, parameter+1)
 		else:
 			raise ValueError('Swadeshness needs its parameter.')
 		
@@ -43,7 +44,7 @@ class Point:
 			if distance_pair is not None:
 				d[language] = distance_pair
 		
-		return d
+		return origin, d
 
 
 

@@ -50,7 +50,7 @@ app.controllers = (function() {
 		);
 		
 		self.modeSelect = new ModeSelect(self.dom.find('select[name=mode]'));
-		self.parameterSelect = new ParameterSelect(
+		self.methodSelect = new MethodSelect(
 			self.dom.find('select[name=variable]')
 		);
 		self.parameterInput = new ParameterInput(
@@ -102,7 +102,9 @@ app.controllers = (function() {
 			self.mode = new app.modes.NormalMode();
 		}
 		else if(newMode == 'point') {
-			self.mode = new app.modes.PointMode(self.fileId);
+			self.mode = new app.modes.PointMode(
+				self.fileId, self.methodSelect, self.parameterInput
+			);
 		}
 		else if(newMode == 'heat') {
 			self.mode = new app.modes.HeatMode(self.fileId);
@@ -169,7 +171,7 @@ app.controllers = (function() {
 	/**
 	 * @class
 	 */
-	var ParameterSelect = function(dom) {
+	var MethodSelect = function(dom) {
 		var self = this;
 		self.dom = dom;
 		
@@ -181,6 +183,17 @@ app.controllers = (function() {
 				self.dom.removeClass('hidden');
 			}
 		});
+	};
+	
+	MethodSelect.prototype.getValue = function() {
+		var self = this;
+		
+		if(self.dom.val() != 'circle' && self.dom.val() != 'neighbourhood') {
+			app.messages.error('Method set to circle.');
+			self.dom.val('circle');
+		}
+		
+		return self.dom.val();
 	};
 	
 	/**
@@ -198,6 +211,19 @@ app.controllers = (function() {
 				self.dom.removeClass('hidden');
 			}
 		});
+	};
+	
+	ParameterInput.prototype.getValue = function() {
+		var self = this;
+		var value = parseInt(self.dom.val());
+		
+		if(isNaN(value) || value <= 0) {
+			app.messages.error('Parameter set to one.');
+			self.dom.val(1);
+			value = 1;
+		}
+		
+		return value;
 	};
 	
 	/**

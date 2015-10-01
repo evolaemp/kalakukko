@@ -30,10 +30,11 @@
 /**
  * global
  */
-body {
+html, body {
 	font-family: 'Fira Sans', sans-serif;
 	font-size: 15px;
 	font-weight: 400;
+	height: 100%;
 	text-rendering: optimizeLegibility;
 }
 
@@ -83,8 +84,14 @@ header {
 	}
 }
 
+main {
+	height: -webkit-calc(~"100% - 86px");
+	height: -moz-calc(~"100% - 86px");
+	height: calc(~"100% - 86px");
+}
+
 .map {
-	height: 500px;
+	height: 100%;
 	width: 100%;
 	.language-marker {
 		background-color: @blue;
@@ -99,6 +106,9 @@ header {
 		opacity: 0.9;
 		text-align: center;
 		width: 24px !important;
+	}
+	.circle {
+		
 	}
 }
 

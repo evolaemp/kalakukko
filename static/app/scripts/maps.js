@@ -24,8 +24,11 @@ app.maps = (function() {
 		var self = this;
 		
 		self.dom = dom;
-		self.map = L.map(self.dom.get(0));
-		self.map.setView([42, 42], 5);
+		self.map = L.map(self.dom.get(0), {
+			center: [42, 42],
+			zoom: 5,
+			zoomControl: false
+		});
 		
 		L.tileLayer(
 			'https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}',
@@ -37,7 +40,12 @@ app.maps = (function() {
 			}
 		).addTo(self.map);
 		
+		/**
+		 * Stuff on the map.
+		 */
 		self.markers = {};
+		self.circles = {};
+		self.points = {};
 		
 		/**
 		 * Fired when language marker is clicked.
@@ -153,6 +161,15 @@ app.maps = (function() {
 	 */
 	OpenStreetMap.prototype.addCircle = function(id, latitude, longitude, radius) {
 		var self = this;
+		
+		var circle = L.circle([latitude, longitude], radius*1000, {
+			className: 'circle',
+			color: 'red',
+			fillColor: '#f03',
+			fillOpacity: 0.5
+		}).addTo(self.map);
+		
+		self.circles[id] = circle;
 	};
 	
 	/**
@@ -162,6 +179,14 @@ app.maps = (function() {
 	 */
 	OpenStreetMap.prototype.removeCircle = function(id) {
 		var self = this;
+		
+		for(var key in self.circles) {
+			if(key == id) {
+				self.map.removeLayer(self.circles[key]);
+				delete self.circles[key];
+				break;
+			}
+		}
 	};
 	
 	/**
