@@ -45,6 +45,7 @@ class Language(models.Model):
 		return {
 			'iso_639_3': self.iso_639_3,
 			'iso_639_1': self.iso_639_1,
+			'iso_code': self.iso_code,
 			'latitude': self.latitude,
 			'longitude': self.longitude
 		}

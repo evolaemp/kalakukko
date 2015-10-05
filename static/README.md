@@ -42,3 +42,10 @@ Watches for changes and updates the `build` directory correspondingly. In a
 typical workflow, you would have `python manage.py runserver` and `gulp` running
 simultaneously.
 
+
+### Tests
+
+There are also QUnit-powered unit tests for some of the JavaScript modules. You
+can access these by pointing your browser to `/js_tests` (the django development
+server has to be running, of course).
+

@@ -19,8 +19,9 @@ app.maps = (function() {
 	 * 
 	 * @class
 	 * @param The map container as a jQuery element.
+	 * @param Whether not to load the tiles.
 	 */
-	var OpenStreetMap = function(dom) {
+	var OpenStreetMap = function(dom, withoutTiles) {
 		var self = this;
 		
 		self.dom = dom;
@@ -30,15 +31,17 @@ app.maps = (function() {
 			zoomControl: false
 		});
 		
-		L.tileLayer(
-			'https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}',
-			{
-				attribution: '<a href="http://openstreetmap.org">OpenStreetMap</a>',
-				accessToken: OSM_ACCESS_TOKEN,
-				id: OSM_ID,
-				maxZoom: 15
-			}
-		).addTo(self.map);
+		if(!withoutTiles) {
+			L.tileLayer(
+				'https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}',
+				{
+					attribution: '<a href="http://openstreetmap.org">OpenStreetMap</a>',
+					accessToken: OSM_ACCESS_TOKEN,
+					id: OSM_ID,
+					maxZoom: 15
+				}
+			).addTo(self.map);
+		}
 		
 		/**
 		 * Stuff on the map.
@@ -117,9 +120,25 @@ app.maps = (function() {
 	 * Highlights the language with the ID specified.
 	 * 
 	 * @param The ID of the language to be highlighted.
+	 * @param The level of highlight: primary (1) or secondary (2).
 	 */
-	OpenStreetMap.prototype.highlightLanguage = function(id) {
+	OpenStreetMap.prototype.highlightLanguage = function(id, level) {
 		var self = this;
+		var className = '';
+		
+		if(level == 1) {
+			className = 'highlight-primary';
+		}
+		else {
+			className = 'highlight-secondary';
+		}
+		
+		for(var key in self.markers) {
+			if(key == id) {
+				self.markers[key]._icon.classList.add(className);
+				break;
+			}
+		}
 	};
 	
 	/**
@@ -129,6 +148,26 @@ app.maps = (function() {
 	 */
 	OpenStreetMap.prototype.lowlightLanguage = function(id) {
 		var self = this;
+		
+		for(var key in self.markers) {
+			if(key == id) {
+				self.markers[key]._icon.classList.remove('highlight-primary');
+				self.markers[key]._icon.classList.remove('highlight-secondary');
+				break;
+			}
+		}
+	};
+	
+	/**
+	 * Removes the highlights of all the languages on the map.
+	 */
+	OpenStreetMap.prototype.lowlightAll = function() {
+		var self = this;
+		
+		for(var key in self.markers) {
+			self.markers[key]._icon.classList.remove('highlight-primary');
+			self.markers[key]._icon.classList.remove('highlight-secondary');
+		}
 	};
 	
 	/**
@@ -140,6 +179,13 @@ app.maps = (function() {
 	 */
 	OpenStreetMap.prototype.addPoint = function(id, latitude, longitude) {
 		var self = this;
+		
+		var point = L.circle([latitude, longitude], 10, {
+			className: 'point',
+			color: 'red'
+		}).addTo(self.map);
+		
+		self.points[id] = point;
 	};
 	
 	/**
@@ -149,6 +195,14 @@ app.maps = (function() {
 	 */
 	OpenStreetMap.prototype.removePoint = function(id) {
 		var self = this;
+		
+		for(var key in self.points) {
+			if(key == id) {
+				self.map.removeLayer(self.points[key]);
+				delete self.points[key];
+				break;
+			}
+		}
 	};
 	
 	/**
@@ -165,8 +219,8 @@ app.maps = (function() {
 		var circle = L.circle([latitude, longitude], radius*1000, {
 			className: 'circle',
 			color: 'red',
-			fillColor: '#f03',
-			fillOpacity: 0.5
+			fillColor: '#EA7525',
+			fillOpacity: 0.25
 		}).addTo(self.map);
 		
 		self.circles[id] = circle;

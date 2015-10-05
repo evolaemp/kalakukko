@@ -27,6 +27,7 @@ You should include at least the following settings:
 * `SECRET_KEY`, `DEBUG`, `ALLOWED_HOSTS`
 * `STATICFILES_DIRS`, `STATIC_ROOT`, `STATIC_URL`
 * `MEDIA_ROOT`, `MEDIA_URL`
+* `JS_TESTS_ROOT`, `QUNIT_ROOT`
 * `DATABASES`
 * `CACHES` (needed for storing uploaded files for subsequent API requests)
 * `EMAIL_BACKEND` (e.g. `locmem` for testing and `console` for developing),

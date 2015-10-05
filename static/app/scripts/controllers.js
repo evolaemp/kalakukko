@@ -35,14 +35,17 @@ app.controllers = (function() {
 	};
 	
 	/**
-	 * Inits self.dom, self.map, self.mode.
+	 * Inits self.dom and friends.
 	 * Called upon the document ready event.
 	 */
-	Controller.prototype.init = function() {
+	Controller.prototype.initDom = function() {
 		var self = this;
 		
-		/* self.dom */
 		self.dom = $('header .controls');
+		if(self.dom.length != 1) {
+			self.dom = null;
+			return;
+		}
 		
 		self.fileInput = new FileInput(
 			self.dom.find('input[name=file]'),
@@ -56,8 +59,14 @@ app.controllers = (function() {
 		self.parameterInput = new ParameterInput(
 			self.dom.find('input[name=value]')
 		);
-		
-		/* self.map */
+	};
+	
+	/**
+	 * Inits self.map.
+	 * Called upon the document ready event.
+	 */
+	Controller.prototype.initMap = function() {
+		var self = this;
 		var mapElement = $('[data-maps=map]');
 		
 		if(mapElement.length != 1) {
@@ -69,13 +78,20 @@ app.controllers = (function() {
 		
 		for(var i = 0; i < LANGUAGES.length; i++) {
 			self.map.addLanguage(
-				LANGUAGES[i].iso_639_3,
+				LANGUAGES[i].iso_code,
 				LANGUAGES[i].latitude,
 				LANGUAGES[i].longitude
 			);
 		}
+	};
+	
+	/**
+	 * Inits self.mode.
+	 * Called upon the document ready event.
+	 */
+	Controller.prototype.initMode = function() {
+		var self = this;
 		
-		/* self.mode */
 		self.mode = new app.modes.NormalMode();
 		self.mode.bind(self.map);
 		
@@ -105,6 +121,9 @@ app.controllers = (function() {
 			self.mode = new app.modes.PointMode(
 				self.fileId, self.methodSelect, self.parameterInput
 			);
+			self.mode.received404.add(function() {
+				self.switchMode('normal');
+			});
 		}
 		else if(newMode == 'heat') {
 			self.mode = new app.modes.HeatMode(self.fileId);
@@ -299,9 +318,14 @@ app.controllers = (function() {
 	
 	/**
 	 * Init (after DOM ready).
+	 * The if prevents mainController from running when testing.
 	 */
 	$(document).ready(function() {
-		mainController.init();
+		mainController.initDom();
+		if(mainController.dom) {
+			mainController.initMap();
+			mainController.initMode();
+		}
 	});
 	
 	

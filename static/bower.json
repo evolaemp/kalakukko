@@ -9,5 +9,8 @@
     "js-signals": "~1.0.0",
     "leaflet": "~0.7.5",
     "skeleton": "~2.0.4"
+  },
+  "devDependencies": {
+    "qunit": "~1.19.0"
   }
 }

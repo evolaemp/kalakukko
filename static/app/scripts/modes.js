@@ -46,6 +46,11 @@ app.modes = (function() {
 		self.parameterInput = parameterInput;
 		
 		self.points = [];
+		
+		/**
+		 * Fired upon receiving 404 from the server.
+		 */
+		self.received404 = new signals.Signal();
 	};
 	
 	/**
@@ -85,22 +90,26 @@ app.modes = (function() {
 			if(method == 'circle') {
 				self.addPointOfCircle(
 					latitude, longitude,
-					parameter, data.d
+					parameter, data.origin, data.d
 				);
 			}
 			else {
 				self.addPointOfNearest(
 					latitude, longitude,
-					parameter, data.d
+					parameter, data.origin, data.d
 				);
 			}
 		})
-		.fail(function(jqXHR) {
+		.fail(function(xhr) {
 			var error = "Could not connect to server!";
 			try {
-				error = jqXHR.responseJSON.error;
+				error = xhr.responseJSON.error;
 			} catch (e) {}
 			app.messages.error(error);
+			
+			if(xhr.status == 404) {
+				self.received404.dispatch();
+			}
 		});
 	};
 	
@@ -110,15 +119,22 @@ app.modes = (function() {
 	 * @param The latitude of the circle's centre.
 	 * @param The longitude of the circle's centre.
 	 * @param The radius in kilometres.
+	 * @param The ID of the origin language.
 	 * @param The languages in {id: [global, real]} format.
 	 */
-	PointMode.prototype.addPointOfCircle = function(latitude, longitude, radius, d) {
+	PointMode.prototype.addPointOfCircle = function(latitude, longitude, radius, origin, d) {
 		var self = this;
 		
 		var point = {type: 'circle', id: self.points.length};
 		
 		self.map.addPoint(point.id, latitude, longitude);
 		self.map.addCircle(point.id, latitude, longitude, radius);
+		
+		self.map.highlightLanguage(origin, 1);
+		
+		for(var languageId in d) {
+			self.map.highlightLanguage(languageId, 2);
+		}
 		
 		self.points.push(point);
 	};
@@ -129,17 +145,20 @@ app.modes = (function() {
 	 * @param The latitude of the circle's centre.
 	 * @param The longitude of the circle's centre.
 	 * @param The k parameter.
+	 * @param The ID of the origin language.
 	 * @param The languages in {id: [global, real]} format.
 	 */
-	PointMode.prototype.addPointOfNearest = function(latitude, longitude, k, d) {
+	PointMode.prototype.addPointOfNearest = function(latitude, longitude, k, origin, d) {
 		var self = this;
 		
 		var point = {type: 'neighbourhood', id: self.points.length};
 		
 		self.map.addPoint(point.id, latitude, longitude);
 		
+		self.map.highlightLanguage(origin, 1);
+		
 		for(var languageId in d) {
-			self.map.highlightLanguage(languageId);
+			self.map.highlightLanguage(languageId, 2);
 		}
 		
 		self.points.push(point);
@@ -154,8 +173,14 @@ app.modes = (function() {
 		for(var key in self.points) {
 			if(self.points[key].type == 'circle') {
 				self.map.removeCircle(self.points[key].id);
+				self.map.removePoint(self.points[key].id);
+			}
+			else {
+				self.map.removePoint(self.points[key].id);
 			}
 		}
+		
+		self.map.lowlightAll();
 	};
 	
 	/**
@@ -163,7 +188,8 @@ app.modes = (function() {
 	 */
 	PointMode.prototype.unbind = function() {
 		var self = this;
-		self.map.clicked.remove(self.click);
+		self.received404.removeAll();
+		self.map.clicked.removeAll();
 		self.clearMap();
 	};
 	
