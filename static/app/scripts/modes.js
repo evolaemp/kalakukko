@@ -46,6 +46,7 @@ app.modes = (function() {
 		self.parameterInput = parameterInput;
 		
 		self.points = [];
+		self.draggables = [];
 		
 		/**
 		 * Fired upon receiving 404 from the server.
@@ -136,6 +137,9 @@ app.modes = (function() {
 			self.map.highlightLanguage(languageId, 2);
 		}
 		
+		var div = self.map.addDraggable(point.id);
+		self.createChart(div, d);
+		
 		self.points.push(point);
 	};
 	
@@ -161,7 +165,22 @@ app.modes = (function() {
 			self.map.highlightLanguage(languageId, 2);
 		}
 		
+		var div = self.map.addDraggable(point.id);
+		self.createChart(div, d);
+		
 		self.points.push(point);
+	};
+	
+	/**
+	 * Creates a chart.
+	 * 
+	 * @param jQuery instance of the chart container.
+	 */
+	PointMode.prototype.createChart = function(dom, d) {
+		var self = this;
+		
+		var chart = new app.charts.Chart(dom);
+		chart.draw(d);
 	};
 	
 	/**
@@ -174,9 +193,11 @@ app.modes = (function() {
 			if(self.points[key].type == 'circle') {
 				self.map.removeCircle(self.points[key].id);
 				self.map.removePoint(self.points[key].id);
+				self.map.removeDraggable(self.points[key].id);
 			}
 			else {
 				self.map.removePoint(self.points[key].id);
+				self.map.removeDraggable(self.points[key].id);
 			}
 		}
 		

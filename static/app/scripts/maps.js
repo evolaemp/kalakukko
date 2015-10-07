@@ -49,6 +49,7 @@ app.maps = (function() {
 		self.markers = {};
 		self.circles = {};
 		self.points = {};
+		self.draggables = {};
 		
 		/**
 		 * Fired when language marker is clicked.
@@ -238,6 +239,50 @@ app.maps = (function() {
 			if(key == id) {
 				self.map.removeLayer(self.circles[key]);
 				delete self.circles[key];
+				break;
+			}
+		}
+	};
+	
+	/**
+	 * Adds draggable <div> to the bottom right corner of the map.
+	 * 
+	 * @param The ID of the draggable.
+	 * @return jQuery instance of the new element.
+	 */
+	OpenStreetMap.prototype.addDraggable = function(id) {
+		var self = this;
+		
+		var elem = $('<div>');
+		elem.addClass('draggable');
+		elem.appendTo(self.dom.parent());
+		
+		L.DomUtil.setPosition(elem.get(0), L.point(0, 0));
+		
+		var draggable = new L.Draggable(elem.get(0));
+		draggable.enable();
+		
+		self.draggables[id] = {
+			'element': elem,
+			'draggable': draggable
+		};
+		
+		return elem;
+	};
+	
+	/**
+	 * Removes the draggable <div> with the ID specified.
+	 * 
+	 * @param The ID of the draggable to remove.
+	 */
+	OpenStreetMap.prototype.removeDraggable = function(id) {
+		var self = this;
+		
+		for(var key in self.draggables) {
+			if(key == id) {
+				self.draggables[key].draggable.disable();
+				self.draggables[key].element.remove();
+				delete self.draggables[key];
 				break;
 			}
 		}

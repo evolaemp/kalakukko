@@ -54,9 +54,11 @@ gulp.task('scripts', function() {
 gulp.task('dependencies', function() {
 	// skeleton
 	// leaflet
+	// chartist
 	gulp.src([
 			'bower_components/skeleton/css/*.css',
-			'bower_components/leaflet/dist/leaflet.css'
+			'bower_components/leaflet/dist/leaflet.css',
+			'bower_components/chartist/dist/chartist.min.css'
 		])
 		.pipe(less({
 			plugins: [cleanCss]
@@ -67,10 +69,12 @@ gulp.task('dependencies', function() {
 	// jquery
 	// signals
 	// leaflet
+	// chartist
 	gulp.src([
 			'bower_components/jquery/dist/jquery.min.js',
 			'bower_components/js-signals/dist/signals.min.js',
-			'bower_components/leaflet/dist/leaflet.js'
+			'bower_components/leaflet/dist/leaflet.js',
+			'bower_components/chartist/dist/chartist.min.js'
 		])
 		.pipe(concat('vendor.js'))
 		.pipe(gulp.dest('build/scripts'));

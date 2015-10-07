@@ -86,3 +86,17 @@ QUnit.test('add/remove circles', function(assert) {
 	}
 });
 
+QUnit.test('add/remove draggables', function(assert) {
+	var self = this;
+	var i;
+	
+	for(i = 0; i < 10; i++) {
+		self.map.addDraggable(i);
+		assert.equal(self.dom.parent().find('.draggable').length, i+1);
+	}
+	for(i = 0; i < 10; i++) {
+		self.map.removeDraggable(i);
+		assert.equal(self.dom.parent().find('.draggable').length, 10-i-1);
+	}
+});
+
