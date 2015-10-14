@@ -126,24 +126,39 @@ main {
 	bottom: 20px;
 	border-radius: 4px;
 	box-shadow: 0px 0px 2px 0px white;
-	height: 300px;
-	overflow: hidden;
+	height: 320px;
 	position: absolute;
 	right: 10px;
 	width: 300px;
-	.tooltip {
+	.swadeshness {
 		background-color: @blue;
-		border-radius: 4px;
+		border-radius: 4px 4px 0 0;
+		clear: both;
 		color: white;
-		font-size: 12px;
-		padding: 2px 7px;
-		position: absolute;
+		cursor: default;
+		height: 20px;
+		line-height: 20px;
 		text-align: center;
+		width: 100%;
 	}
-	svg {
-		.ct-point {
-			stroke: @orange;
-			stroke-width: 10px;
+	.chart {
+		height: 300px;
+		position: relative;
+		width: 300px;
+		.tooltip {
+			background-color: @blue;
+			border-radius: 4px;
+			color: white;
+			font-size: 12px;
+			padding: 2px 7px;
+			position: absolute;
+			text-align: center;
+		}
+		svg {
+			.ct-point {
+				stroke: @orange;
+				stroke-width: 10px;
+			}
 		}
 	}
 }

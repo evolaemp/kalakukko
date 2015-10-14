@@ -46,7 +46,7 @@ app.modes = (function() {
 		self.parameterInput = parameterInput;
 		
 		self.points = [];
-		self.draggables = [];
+		self.charts = {};
 		
 		/**
 		 * Fired upon receiving 404 from the server.
@@ -90,14 +90,14 @@ app.modes = (function() {
 		.done(function(data) {
 			if(method == 'circle') {
 				self.addPointOfCircle(
-					latitude, longitude,
-					parameter, data.origin, data.d
+					latitude, longitude, parameter,
+					data.origin, data.d, data.p
 				);
 			}
 			else {
 				self.addPointOfNearest(
-					latitude, longitude,
-					parameter, data.origin, data.d
+					latitude, longitude, parameter,
+					data.origin, data.d, data.p
 				);
 			}
 		})
@@ -122,8 +122,9 @@ app.modes = (function() {
 	 * @param The radius in kilometres.
 	 * @param The ID of the origin language.
 	 * @param The languages in {id: [global, real]} format.
+	 * @param The swadeshness.
 	 */
-	PointMode.prototype.addPointOfCircle = function(latitude, longitude, radius, origin, d) {
+	PointMode.prototype.addPointOfCircle = function(latitude, longitude, radius, origin, d, swadeshness) {
 		var self = this;
 		
 		var point = {type: 'circle', id: self.points.length};
@@ -138,7 +139,7 @@ app.modes = (function() {
 		}
 		
 		var div = self.map.addDraggable(point.id);
-		self.createChart(div, d);
+		self.addChart(point.id, div, d, swadeshness);
 		
 		self.points.push(point);
 	};
@@ -151,8 +152,9 @@ app.modes = (function() {
 	 * @param The k parameter.
 	 * @param The ID of the origin language.
 	 * @param The languages in {id: [global, real]} format.
+	 * @param The swadeshness.
 	 */
-	PointMode.prototype.addPointOfNearest = function(latitude, longitude, k, origin, d) {
+	PointMode.prototype.addPointOfNearest = function(latitude, longitude, k, origin, d, swadeshness) {
 		var self = this;
 		
 		var point = {type: 'neighbourhood', id: self.points.length};
@@ -166,7 +168,7 @@ app.modes = (function() {
 		}
 		
 		var div = self.map.addDraggable(point.id);
-		self.createChart(div, d);
+		self.addChart(point.id, div, d, swadeshness);
 		
 		self.points.push(point);
 	};
@@ -174,13 +176,25 @@ app.modes = (function() {
 	/**
 	 * Creates a chart.
 	 * 
+	 * @param The ID of the chart (internal for PointMode).
 	 * @param jQuery instance of the chart container.
+	 * @param The data to populate the chart with.
+	 * @param The swadeshness.
 	 */
-	PointMode.prototype.createChart = function(dom, d) {
+	PointMode.prototype.addChart = function(id, dom, d, swadeshness) {
 		var self = this;
 		
-		var chart = new app.charts.Chart(dom);
+		$('<div class="swadeshness"></div>')
+			.html(swadeshness)
+			.appendTo(dom);
+		
+		$('<div class="chart"></div>')
+			.appendTo(dom);
+		
+		var chart = new app.charts.Chart(dom.find('.chart'));
 		chart.draw(d);
+		
+		self.charts[id] = chart;
 	};
 	
 	/**
@@ -188,8 +202,16 @@ app.modes = (function() {
 	 */
 	PointMode.prototype.clearMap = function() {
 		var self = this;
+		var key = null;
 		
-		for(var key in self.points) {
+		/* clear all charts */
+		for(key in self.charts) {
+			self.charts[key].destroy();
+		}
+		self.charts = {};
+		
+		/* clear all objects on the map */
+		for(key in self.points) {
 			if(self.points[key].type == 'circle') {
 				self.map.removeCircle(self.points[key].id);
 				self.map.removePoint(self.points[key].id);
@@ -200,7 +222,9 @@ app.modes = (function() {
 				self.map.removeDraggable(self.points[key].id);
 			}
 		}
+		self.points = [];
 		
+		/* remove language highlighting */
 		self.map.lowlightAll();
 	};
 	
@@ -219,11 +243,22 @@ app.modes = (function() {
 	 * Handles the state when the heatmap is requested.
 	 * 
 	 * @class
+	 * 
 	 * @param The file ID.
+	 * @param The method select.
+	 * @param The parameter input.
 	 */
-	var HeatMode = function(fileId) {
+	var HeatMode = function(fileId, methodSelect, parameterInput) {
 		var self = this;
 		self.fileId = fileId;
+		
+		self.methodSelect = methodSelect;
+		self.parameterInput = parameterInput;
+		
+		/**
+		 * Fired upon receiving 404 from the server.
+		 */
+		self.received404 = new signals.Signal();
 	};
 	
 	/**
@@ -234,6 +269,59 @@ app.modes = (function() {
 	HeatMode.prototype.bind = function(map) {
 		var self = this;
 		self.map = map;
+		self.map.changedViewport.add(self.changeViewport, self);
+		
+		/*var bounds = self.map.map.getBounds();
+		self.changeViewport({
+			north: bounds.getNorth(),
+			south: bounds.getSouth(),
+			east: bounds.getEast(),
+			west: bounds.getWest()
+		});*/
+	};
+	
+	/**
+	 * Handles changing the viewport in heat mode.
+	 * 
+	 * @param Dict with keys {north, south, east, west}.
+	 */
+	HeatMode.prototype.changeViewport = function(bounds) {
+		var self = this;
+		
+		var method = self.methodSelect.getValue();
+		var parameter = self.parameterInput.getValue();
+		
+		$.post('/api/heat/', JSON.stringify({
+			id: self.fileId,
+			north: bounds.north,
+			south: bounds.south,
+			east: bounds.east,
+			west: bounds.west,
+			method: method,
+			parameter: parameter
+		}))
+		.done(function(data) {
+			self.map.turnHeatOn(data.points);
+		})
+		.fail(function(xhr) {
+			var error = "Could not connect to server!";
+			try {
+				error = xhr.responseJSON.error;
+			} catch (e) {}
+			app.messages.error(error);
+			
+			if(xhr.status == 404) {
+				self.received404.dispatch();
+			}
+		});
+	};
+	
+	/**
+	 * Cools down the map to normality.
+	 */
+	HeatMode.prototype.clearMap = function() {
+		var self = this;
+		self.map.turnHeatOff();
 	};
 	
 	/**
@@ -241,6 +329,9 @@ app.modes = (function() {
 	 */
 	HeatMode.prototype.unbind = function() {
 		var self = this;
+		self.received404.removeAll();
+		self.map.changedViewport.removeAll();
+		self.clearMap();
 	};
 	
 	

@@ -5,7 +5,7 @@ QUnit.module('app.maps.OpenStreetMap', {
 		self.dom = $('<div class="map"></div>');
 		self.dom.appendTo($('#qunit-fixture'));
 		
-		self.map = new app.maps.OpenStreetMap(self.dom, true);
+		self.map = new app.maps.OpenStreetMap(self.dom);
 	}
 });
 

@@ -75,6 +75,7 @@ app.controllers = (function() {
 		}
 		
 		self.map = new app.maps.OpenStreetMap(mapElement);
+		self.map.loadTiles();
 		
 		for(var i = 0; i < LANGUAGES.length; i++) {
 			self.map.addLanguage(
@@ -126,7 +127,12 @@ app.controllers = (function() {
 			});
 		}
 		else if(newMode == 'heat') {
-			self.mode = new app.modes.HeatMode(self.fileId);
+			self.mode = new app.modes.HeatMode(
+				self.fileId, self.methodSelect, self.parameterInput
+			);
+			self.mode.received404.add(function() {
+				self.switchMode('normal');
+			});
 		}
 		else {
 			app.messages.error('Unknown mode requested.');

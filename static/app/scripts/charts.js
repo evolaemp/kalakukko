@@ -1,5 +1,5 @@
 /**
- * Handles the charts making.
+ * Handles the chart making.
  * 
  * @module
  * 
@@ -45,23 +45,40 @@ app.charts = (function() {
 			});
 		}
 		
+		/**
+		 * Chartist throws an error with series: [[]].
+		 */
+		if(data.length) {
+			data = [data];
+		}
+		
 		self.chart = new Chartist.Line(
 			self.dom.get(0),
 			{
-				series: [data]
+				series: data
 			},
 			{
 				axisX: {
 					type: Chartist.AutoScaleAxis,
 					low: 0,
 					high: 1,
-					scaleMinSpace: 50
+					scaleMinSpace: 50,
+					showLabel: false,
+					offset: 0
 				},
 				axisY: {
 					type: Chartist.AutoScaleAxis,
 					low: 0,
 					high: 1,
-					scaleMinSpace: 50
+					scaleMinSpace: 50,
+					showLabel: false,
+					offset: 0
+				},
+				chartPadding: {
+					bottom: 15,
+					left: 15,
+					right: 15,
+					top: 15
 				},
 				showLine: false
 			}
@@ -77,6 +94,8 @@ app.charts = (function() {
 	
 	/**
 	 * Creates tooltip with more info on hover.
+	 * For the tooltip to work properly, self.dom should be with position
+	 * relative or absolute.
 	 */
 	Chart.prototype.initTooltip = function() {
 		var self = this;
@@ -106,6 +125,19 @@ app.charts = (function() {
 				top: (e.offsetY || e.originalEvent.layerY) - self.tooltip.height() - 12
 			});
 		});
+	};
+	
+	/**
+	 * Destroys the chart.
+	 */
+	Chart.prototype.destroy = function() {
+		var self = this;
+		
+		self.chart.detach();
+		self.dom.empty();
+		
+		self.chart = null;
+		self.tooltip = null;
 	};
 	
 	

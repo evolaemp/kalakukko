@@ -7,7 +7,7 @@ from utils.json import make_json, read_json
 
 
 
-class PointApiTestCase(TestCase):
+class HeatApiTestCase(TestCase):
 	fixtures = ['languages.json']
 	
 	def setUp(self):
@@ -20,8 +20,10 @@ class PointApiTestCase(TestCase):
 		
 		self.post = {
 			'id': file_id,
-			'latitude': 43,
-			'longitude': 42,
+			'north': 0,
+			'south': 32,
+			'east': 32,
+			'west': 0,
 			'method': 'circle',
 			'parameter': 500
 		}
@@ -31,53 +33,30 @@ class PointApiTestCase(TestCase):
 	
 	def test_good_circle(self):
 		response = self.client.post(
-			reverse('point_api'),
+			reverse('heat_api'),
 			make_json(self.post),
 			content_type='application/octet-stream'
 		)
 		self.assertEqual(response.status_code, 200)
 		
 		content = read_json(response.content)
-		self.assertEqual(len(content), 3)
-		self.assertIn('origin', content)
-		self.assertIn('d', content)
-		self.assertIn('p', content)
-		
-		self.assertEqual(content['origin'], 'ab')
-		
-		self.assertEqual(len(content['d']), 7)
-		self.assertIn('os', content['d'])
-		self.assertIn('ka', content['d'])
-		self.assertIn('ady', content['d'])
-		self.assertIn('ddo', content['d'])
-		self.assertIn('ce', content['d'])
-		self.assertIn('dar', content['d'])
-		self.assertIn('hy', content['d'])
+		self.assertEqual(len(content), 1)
+		self.assertIn('points', content)
 	
 	def test_good_neighbourhood(self):
 		self.post['method'] = 'neighbourhood'
 		self.post['parameter'] = 4
 		
 		response = self.client.post(
-			reverse('point_api'),
+			reverse('heat_api'),
 			make_json(self.post),
 			content_type='application/octet-stream'
 		)
 		self.assertEqual(response.status_code, 200)
 		
 		content = read_json(response.content)
-		self.assertEqual(len(content), 3)
-		self.assertIn('origin', content)
-		self.assertIn('d', content)
-		self.assertIn('p', content)
-		
-		self.assertEqual(content['origin'], 'ab')
-		
-		self.assertEqual(len(content['d']), 4)
-		self.assertIn('os', content['d'])
-		self.assertIn('ka', content['d'])
-		self.assertIn('ady', content['d'])
-		self.assertIn('ddo', content['d'])
+		self.assertEqual(len(content), 1)
+		self.assertIn('points', content)
 
 
 

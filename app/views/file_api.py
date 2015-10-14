@@ -11,7 +11,17 @@ class FileApiView(View):
 		"""
 		Creates a new word matrix and stores it for subsequent API calls.
 		Returns the ID of the matrix.
+		
+		POST
+			file	# the .tsv file
+		
+		200:
+			id,		# word matrix id
+			name	# pretty file name
+		
+		400: error
 		"""
+		
 		try:
 			f = self.validate_file(request)
 		except ValueError as error:

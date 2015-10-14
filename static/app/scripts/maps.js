@@ -15,13 +15,12 @@ app.maps = (function() {
 	/**
 	 * Class definition for Open Street Maps instances.
 	 * 
-	 * Assumes that L, OSM_ACCESS_TOKEN and OSM_ID are present.
+	 * Assumes that L is present.
 	 * 
 	 * @class
 	 * @param The map container as a jQuery element.
-	 * @param Whether not to load the tiles.
 	 */
-	var OpenStreetMap = function(dom, withoutTiles) {
+	var OpenStreetMap = function(dom) {
 		var self = this;
 		
 		self.dom = dom;
@@ -31,18 +30,6 @@ app.maps = (function() {
 			zoomControl: false
 		});
 		
-		if(!withoutTiles) {
-			L.tileLayer(
-				'https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}',
-				{
-					attribution: '<a href="http://openstreetmap.org">OpenStreetMap</a>',
-					accessToken: OSM_ACCESS_TOKEN,
-					id: OSM_ID,
-					maxZoom: 15
-				}
-			).addTo(self.map);
-		}
-		
 		/**
 		 * Stuff on the map.
 		 */
@@ -50,6 +37,40 @@ app.maps = (function() {
 		self.circles = {};
 		self.points = {};
 		self.draggables = {};
+		self.heat = [];
+		
+		/**
+		 * Signals.
+		 */
+		self._initSignals();
+	};
+	
+	/**
+	 * Loads the tiles. Unnecessary to invoke when unit testing.
+	 * Assumes that OSM_ACCESS_TOKEN and OSM_ID are present.
+	 */
+	OpenStreetMap.prototype.loadTiles = function() {
+		var self = this;
+		
+		L.tileLayer(
+			'https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}',
+			{
+				attribution: '<a href="http://openstreetmap.org">OpenStreetMap</a>',
+				accessToken: OSM_ACCESS_TOKEN,
+				id: OSM_ID,
+				maxZoom: 15
+			}
+		).addTo(self.map);
+	};
+	
+	/**
+	 * Inits the various signals that the map will emit.
+	 * Purpose: to avoid making the constructor too large.
+	 * 
+	 * @private
+	 */
+	OpenStreetMap.prototype._initSignals = function() {
+		var self = this;
 		
 		/**
 		 * Fired when language marker is clicked.
@@ -58,10 +79,28 @@ app.maps = (function() {
 		
 		/**
 		 * Fired when the map is clicked.
+		 * @see app.modes.PointMode
 		 */
 		self.clicked = new signals.Signal();
+		
 		self.map.on('click', function(e) {
 			self.clicked.dispatch(e.latlng.lat, e.latlng.lng);
+		});
+		
+		/**
+		 * Fired when the map is moved or zoomed.
+		 * @see app.modes.HeatMode
+		 */
+		self.changedViewport = new signals.Signal();
+		
+		self.map.on('moveend zoomend', function(e) {
+			var bounds = self.map.getBounds();
+			self.changedViewport.dispatch({
+				north: bounds.getNorth(),
+				south: bounds.getSouth(),
+				east: bounds.getEast(),
+				west: bounds.getWest()
+			});
 		});
 	};
 	
@@ -108,6 +147,7 @@ app.maps = (function() {
 	 * Event handler for clicking on markers.
 	 * Attached to DOM in self.addMarker().
 	 * 
+	 * @private
 	 * @param The L-augmented event.
 	 */
 	OpenStreetMap.prototype._handleLanguageClick = function(e) {
@@ -222,7 +262,8 @@ app.maps = (function() {
 			color: 'red',
 			fillColor: '#EA7525',
 			fillOpacity: 0.25
-		}).addTo(self.map);
+		});
+		circle.addTo(self.map);
 		
 		self.circles[id] = circle;
 	};
@@ -286,6 +327,50 @@ app.maps = (function() {
 				break;
 			}
 		}
+	};
+	
+	/**
+	 * Adds heat layer on the map.
+	 * 
+	 * @param List of [longitude, latitude, temperature].
+	 */
+	OpenStreetMap.prototype.turnHeatOn = function(points) {
+		var self = this;
+		
+		self.turnHeatOff();
+		self.heat = [];
+		
+		for(var i in points) {
+			self.heat.push(
+				L.circle([points[i][0], points[i][1]], 10, {
+					className: 'heat-point',
+					color: 'red'
+				}).addTo(self.map)
+			);
+		}
+		
+		/*self.heat = L.heatLayer(points);
+		self.heat.addTo(self.map);
+		self.heat.redraw();*/
+	};
+	
+	/**
+	 * Removes the heat layer from the map.
+	 * There must be at most one heat layer at a time.
+	 */
+	OpenStreetMap.prototype.turnHeatOff = function() {
+		var self = this;
+		
+		for(var i in self.heat) {
+			self.map.removeLayer(self.heat[i]);
+		}
+		self.heat = [];
+		
+		/*if(self.map.hasLayer(self.heat)) {
+			self.map.removeLayer(self.heat);
+		}
+		
+		self.heat = null;*/
 	};
 	
 	/**

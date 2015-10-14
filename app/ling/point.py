@@ -1,16 +1,18 @@
 from app.ling.map import Map
+from app.ling.math import get_correlation
+
 
 
 class Point:
 	"""
 	Main purpose: to calculate its own swadeshness, done in 4 steps:
 	(1) Get the reference language, i.e. the one nearest to the point. This is
-	delegated to app.ling.Map.
+	delegated to app.ling.map.
 	(2) Get the other relevant languages, where relevance is determined by the
-	parameter. This is delegated to app.ling.Map.
+	parameter. This is delegated to app.ling.map.
 	(3) Get the linguistic distance values for those languages from the
-	relevant app.ling.WordMatrix.
-	(4) Process those values using an app.ling.Correlator.
+	relevant app.ling.word_matrix.
+	(4) Process those values using an app.ling.math.
 	"""
 	
 	def __init__(self, latitude, longitude):
@@ -39,12 +41,18 @@ class Point:
 			raise ValueError('Swadeshness needs its parameter.')
 		
 		d = {}
+		a, b = [], []
+		
 		for language in languages:
 			distance_pair = word_matrix.get_distances(origin, language)
 			if distance_pair is not None:
 				d[language] = distance_pair
+				a.append(distance_pair[0])
+				b.append(distance_pair[1])
 		
-		return origin, d
+		p = get_correlation(a, b)
+		
+		return origin, d, p
 
 
 

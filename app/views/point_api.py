@@ -13,7 +13,23 @@ class PointApiView(View):
 	def post(self, request):
 		"""
 		Returns the analysis for the requested point.
+		
+		POST
+			id,			# word matrix id
+			latitude,	# point coord
+			longitude,	# point coord
+			method,		# circle or neighbourhood
+			parameter	# circle radius or neighbourhood size
+		
+		200:
+			origin,		# language used as refernce
+			d, 			# {} of (global, real)
+			p 			# pearson coefficient (the swadeshness)
+		
+		400: error
+		404: error 		# word matrix not found
 		"""
+		
 		try:
 			post = self.validate_post(request.body)
 		except ValueError as error:
@@ -31,7 +47,7 @@ class PointApiView(View):
 		point = Point(post['latitude'], post['longitude'])
 		
 		try:
-			origin, d = point.get_swadeshness(
+			origin, d, p = point.get_swadeshness(
 				matrix,
 				method = post['method'],
 				parameter = post['parameter']
@@ -40,7 +56,7 @@ class PointApiView(View):
 			return JsonResponse({'error': str(error)}, status=400)
 		
 		return JsonResponse({
-			'origin': origin, 'd': d
+			'origin': origin, 'd': d, 'p': p
 		}, status=200)
 	
 	
