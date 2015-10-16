@@ -7,7 +7,7 @@ from utils.json import make_json, read_json
 
 
 
-class HeatApiTestCase(TestCase):
+class HoneycombApiTestCase(TestCase):
 	fixtures = ['languages.json']
 	
 	def setUp(self):
@@ -20,12 +20,9 @@ class HeatApiTestCase(TestCase):
 		
 		self.post = {
 			'id': file_id,
-			'north': 0,
-			'south': 32,
-			'east': 32,
-			'west': 0,
+			'cells': [[65, -22], [55, 50], [-15, -70]],
 			'method': 'circle',
-			'parameter': 500
+			'parameter': 1000
 		}
 	
 	def tearDown(self):
@@ -33,7 +30,7 @@ class HeatApiTestCase(TestCase):
 	
 	def test_good_circle(self):
 		response = self.client.post(
-			reverse('heat_api'),
+			reverse('honeycomb_api'),
 			make_json(self.post),
 			content_type='application/octet-stream'
 		)
@@ -41,14 +38,14 @@ class HeatApiTestCase(TestCase):
 		
 		content = read_json(response.content)
 		self.assertEqual(len(content), 1)
-		self.assertIn('points', content)
+		self.assertIn('cells', content)
 	
 	def test_good_neighbourhood(self):
 		self.post['method'] = 'neighbourhood'
 		self.post['parameter'] = 4
 		
 		response = self.client.post(
-			reverse('heat_api'),
+			reverse('honeycomb_api'),
 			make_json(self.post),
 			content_type='application/octet-stream'
 		)
@@ -56,7 +53,7 @@ class HeatApiTestCase(TestCase):
 		
 		content = read_json(response.content)
 		self.assertEqual(len(content), 1)
-		self.assertIn('points', content)
+		self.assertIn('cells', content)
 
 
 

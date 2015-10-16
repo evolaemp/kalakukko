@@ -37,7 +37,7 @@ app.maps = (function() {
 		self.circles = {};
 		self.points = {};
 		self.draggables = {};
-		self.heat = [];
+		self.honeycomb = null;
 		
 		/**
 		 * Signals.
@@ -89,19 +89,10 @@ app.maps = (function() {
 		
 		/**
 		 * Fired when the map is moved or zoomed.
-		 * @see app.modes.HeatMode
+		 * @see app.modes.HoneycombMode
+		 * @see initHoneycomb()
 		 */
 		self.changedViewport = new signals.Signal();
-		
-		self.map.on('moveend zoomend', function(e) {
-			var bounds = self.map.getBounds();
-			self.changedViewport.dispatch({
-				north: bounds.getNorth(),
-				south: bounds.getSouth(),
-				east: bounds.getEast(),
-				west: bounds.getWest()
-			});
-		});
 	};
 	
 	/**
@@ -330,90 +321,277 @@ app.maps = (function() {
 	};
 	
 	/**
-	 * Adds heat layer on the map.
+	 * Adds honeycomb layer on the map.
+	 * There is only one honeycomb layer at a time.
 	 * 
-	 * @param List of [longitude, latitude, temperature].
 	 */
-	OpenStreetMap.prototype.turnHeatOn = function(points) {
+	OpenStreetMap.prototype.createHoneycomb = function() {
 		var self = this;
 		
-		self.turnHeatOff();
-		self.heat = [];
-		
-		for(var i in points) {
-			self.heat.push(
-				L.circle([points[i][0], points[i][1]], 10, {
-					className: 'heat-point',
-					color: 'red'
-				}).addTo(self.map)
-			);
+		if(self.honeycomb) {
+			self.removeHoneycomb();
 		}
 		
-		/*self.heat = L.heatLayer(points);
-		self.heat.addTo(self.map);
-		self.heat.redraw();*/
+		self.honeycomb = new HoneycombLayer(self.changedViewport);
+		self.honeycomb.addTo(self.map);
 	};
 	
 	/**
-	 * Removes the heat layer from the map.
-	 * There must be at most one heat layer at a time.
+	 * Updates the honeycomb cells.
+	 * 
+	 * @param [] of [latitude, longitude, temperature].
 	 */
-	OpenStreetMap.prototype.turnHeatOff = function() {
+	OpenStreetMap.prototype.updateHoneycomb = function(cells) {
 		var self = this;
-		
-		for(var i in self.heat) {
-			self.map.removeLayer(self.heat[i]);
-		}
-		self.heat = [];
-		
-		/*if(self.map.hasLayer(self.heat)) {
-			self.map.removeLayer(self.heat);
-		}
-		
-		self.heat = null;*/
+		self.honeycomb.redraw(cells);
 	};
 	
 	/**
-	 * Turns the heat on!
+	 * Removes the honeycomb layer from the map.
+	 * There is only one honeycomb layer at a time.
 	 */
-	/*OpenStreetMap.prototype.turnHeatOn = function(origin, distances) {
+	OpenStreetMap.prototype.removeHoneycomb = function() {
 		var self = this;
 		
-		var keys = Object.keys(self.markers);
-		var key = null;
-		
-		var redness = null;
-		var nonRedness = null;
-		
-		for(var i = 0; i < keys.length; i++) {
-			key = keys[i];
-			if(key == origin) {
-				self.markers[key]._icon.style.backgroundColor = 'red';
-				continue;
-			}
-			if(!distances.hasOwnProperty(key)) {
-				continue;
-			}
-			
-			redness = parseInt((1 - distances[key]) * 255);
-			nonRedness = 255 - redness;
-			
-			self.markers[key]._icon.style.backgroundColor = 'rgb('+ redness +', '+ nonRedness +', '+ nonRedness +')';
+		if(self.honeycomb) {
+			self.map.removeLayer(self.honeycomb);
 		}
-	};*/
+	};
+	
 	
 	/**
-	 * Turns the heat off.
+	 * Leaflet layer for the honeycomb.
+	 * Wrapper around HoneycombCanvas.
+	 * 
+	 * @class
+	 * @see Source code of Leaflet.heat.
 	 */
-	/*OpenStreetMap.prototype.turnHeatOff = function() {
+	var HoneycombLayer = L.Class.extend({
+		initialize: function(changedViewport) {
+			var self = this;
+			
+			self.canvas = null;
+			self.ctx = null;
+			self.cells = [];
+			
+			self.changedViewport = changedViewport;
+		},
+		
+		onAdd: function(map) {
+			var self = this;
+			self.map = map;
+			
+			if(!self.canvas) {
+				self._initCanvas();
+			}
+			
+			self.map.getPanes().overlayPane.appendChild(self.canvas);
+			
+			self.map.on('moveend', self._reset, self);
+			
+			self._reset();
+		},
+		
+		onRemove: function(map) {
+			var self = this;
+			
+			self.map.getPanes().overlayPane.removeChild(self.canvas);
+			
+			self.map.off('moveend', self._reset, self);
+		},
+		
+		addTo: function(map) {
+			var self = this;
+			map.addLayer(self);
+			return self;
+		},
+		
+		_initCanvas: function() {
+			var self = this;
+			
+			self.canvas = L.DomUtil.create('canvas', 'leaflet-layer honeycomb');
+			L.DomUtil.addClass(self.canvas, 'leaflet-zoom-hide');
+			
+			var size = self.map.getSize();
+			self.canvas.width = size.x;
+			self.canvas.height = size.y;
+			
+			// self.honeycomb = new HoneycombCanvas(self.canvas);
+			self.ctx = self.canvas.getContext('2d');
+		},
+		
+		_reset: function() {
+			var self = this;
+			
+			var topLeft = self.map.containerPointToLayerPoint([0, 0]);
+			L.DomUtil.setPosition(self.canvas, topLeft);
+			
+			var size = self.map.getSize();
+			if(self.canvas.width !== size.x) {
+				self.canvas.width = size.x;
+			}
+			if(self.canvas.height !== size.y) {
+				self.canvas.height = size.y;
+			}
+			
+			self.ctx.clearRect(0, 0, self.canvas.width, self.canvas.height);
+			self.cells = [];
+			
+			
+			var a = 20;
+			var h = Math.sin(Math.PI / 3) * a;
+			
+			var x = 0, y = 0, row = 0, latLng = [], coords = [];
+			
+			while(true) {
+				x = (row % 2) ? -3/2*a : 0;
+				y = row*h;
+				
+				while(true) {
+					self.cells.push([x, y]);
+					
+					latLng = self.map.containerPointToLatLng([x, y]);
+					coords.push([latLng.lat, latLng.lng]);
+					
+					x += 3*a;
+					if(x > self.canvas.width + 3*a) {
+						break;
+					}
+				}
+				
+				row += 1;
+				
+				if(y > self.canvas.height) {
+					break;
+				}
+			}
+			
+			self.changedViewport.dispatch(coords);
+		},
+		
+		redraw: function(data) {
+			var self = this;
+			
+			self.ctx.clearRect(0, 0, self.canvas.width, self.canvas.height);
+			
+			var a = 20;
+			var h = Math.sin(Math.PI / 3) * a;
+			
+			var i = 0, colour = '', lightness = 0;
+			
+			for(i = 0; i < self.cells.length; i++) {
+				if(data[i][2] == 0) {
+					continue;
+				}
+				else if(data[i][2] > 0) {
+					lightness = 100 - parseInt(data[i][2] * 50);
+					colour = 'hsl(0, 100%, '+ lightness +'%)';
+				}
+				else {
+					lightness = 100 + parseInt(data[i][2] * 50);
+					colour = 'hsl(240, 100%, '+ lightness +'%)';
+				}
+				
+				self._drawHexagon(self.cells[i][0], self.cells[i][1], a, h, colour);
+			}
+		},
+		
+		_drawHexagon: function(x, y, a, h, colour) {
+			var self = this;
+			
+			self.ctx.beginPath();
+			self.ctx.moveTo(x-a, y);
+			self.ctx.lineTo(x-a/2, y+h);
+			self.ctx.lineTo(x+a/2, y+h);
+			self.ctx.lineTo(x+a, y);
+			self.ctx.lineTo(x+a/2, y-h);
+			self.ctx.lineTo(x-a/2, y-h);
+			self.ctx.closePath();
+			
+			self.ctx.fillStyle = colour;
+			self.ctx.fill();
+		}
+	});
+	
+	
+	/**
+	 * Handles the (re-)drawing of the honeycomb.
+	 * Encapsulates the canvas interactions.
+	 * 
+	 * @class
+	 * @param The canvas to draw the honeycomb on.
+	 */
+	var HoneycombCanvas = function(canvas) {
 		var self = this;
 		
-		var keys = Object.keys(self.markers);
+		self.canvas = canvas;
+		self.ctx = self.canvas.getContext('2d');
 		
-		for(var i = 0; i < keys.length; i++) {
-			self.markers[keys[i]]._icon.style.backgroundColor = null;
+		self.points = [];
+	};
+	
+	/**
+	 * Clears the canvas and draws the hexagons on it.
+	 */
+	HoneycombCanvas.prototype.redraw = function() {
+		var self = this;
+		
+		self.ctx.clearRect(0, 0, self.canvas.width, self.canvas.height);
+		self.points = [];
+		
+		var a = 10;
+		var h = Math.sin(Math.PI / 3) * a;
+		var x = 0, y = 0, row = 0;
+		
+		while(true) {
+			x = (row % 2) ? -3/2*a : 0;
+			y = row*h;
+			
+			while(true) {
+				// self.drawHexagon(x, y, a, h, 'black');
+				self.points.push([x, y]);
+				x += 3*a;
+				if(x > self.canvas.width + 3*a) {
+					break;
+				}
+			}
+			
+			row += 1;
+			
+			if(y > self.canvas.height) {
+				break;
+			}
 		}
-	};*/
+	};
+	
+	/**
+	 * Draws a hexagon.
+	 * 
+	 * The perpendicular is derivable from the side, but we do not want to make
+	 * the same calculation over and over when mass producing hexagons.
+	 * 
+	 * @param The x of hexagon's centre.
+	 * @param The y of hexagon's centre.
+	 * @param The hexagon's side.
+	 * @param The hexagon's perpendicular (centre to side).
+	 * @param The colour to fill the hexagon with.
+	 */
+	HoneycombCanvas.prototype.drawHexagon = function(x, y, a, h, colour) {
+		var self = this;
+		
+		self.ctx.beginPath();
+		self.ctx.moveTo(x-a, y);
+		self.ctx.lineTo(x-a/2, y+h);
+		self.ctx.lineTo(x+a/2, y+h);
+		self.ctx.lineTo(x+a, y);
+		self.ctx.lineTo(x+a/2, y-h);
+		self.ctx.lineTo(x-a/2, y-h);
+		self.ctx.closePath();
+		
+		// self.ctx.fillStyle = colour;
+		// self.ctx.fill();
+		self.ctx.stroke();
+	};
 	
 	
 	/**

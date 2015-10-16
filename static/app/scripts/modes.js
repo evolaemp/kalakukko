@@ -240,7 +240,7 @@ app.modes = (function() {
 	
 	
 	/**
-	 * Handles the state when the heatmap is requested.
+	 * Handles the state when the honeycomb is requested.
 	 * 
 	 * @class
 	 * 
@@ -248,7 +248,7 @@ app.modes = (function() {
 	 * @param The method select.
 	 * @param The parameter input.
 	 */
-	var HeatMode = function(fileId, methodSelect, parameterInput) {
+	var HoneycombMode = function(fileId, methodSelect, parameterInput) {
 		var self = this;
 		self.fileId = fileId;
 		
@@ -266,42 +266,38 @@ app.modes = (function() {
 	 * 
 	 * @param The map.
 	 */
-	HeatMode.prototype.bind = function(map) {
+	HoneycombMode.prototype.bind = function(map) {
 		var self = this;
+		
 		self.map = map;
+		
 		self.map.changedViewport.add(self.changeViewport, self);
 		
-		/*var bounds = self.map.map.getBounds();
-		self.changeViewport({
-			north: bounds.getNorth(),
-			south: bounds.getSouth(),
-			east: bounds.getEast(),
-			west: bounds.getWest()
-		});*/
+		self.map.createHoneycomb();
 	};
 	
 	/**
-	 * Handles changing the viewport in heat mode.
+	 * Handles changing the viewport in honeycomb mode.
 	 * 
-	 * @param Dict with keys {north, south, east, west}.
+	 * @param [] of [latitude, longitude].
 	 */
-	HeatMode.prototype.changeViewport = function(bounds) {
+	HoneycombMode.prototype.changeViewport = function(cells) {
 		var self = this;
+		
+		app.messages.info('Loading honeycomb&hellip;');
 		
 		var method = self.methodSelect.getValue();
 		var parameter = self.parameterInput.getValue();
 		
-		$.post('/api/heat/', JSON.stringify({
+		$.post('/api/honeycomb/', JSON.stringify({
 			id: self.fileId,
-			north: bounds.north,
-			south: bounds.south,
-			east: bounds.east,
-			west: bounds.west,
+			cells: cells,
 			method: method,
 			parameter: parameter
 		}))
 		.done(function(data) {
-			self.map.turnHeatOn(data.points);
+			self.map.updateHoneycomb(data.cells);
+			app.messages.clear();
 		})
 		.fail(function(xhr) {
 			var error = "Could not connect to server!";
@@ -319,15 +315,15 @@ app.modes = (function() {
 	/**
 	 * Cools down the map to normality.
 	 */
-	HeatMode.prototype.clearMap = function() {
+	HoneycombMode.prototype.clearMap = function() {
 		var self = this;
-		self.map.turnHeatOff();
+		self.map.removeHoneycomb();
 	};
 	
 	/**
 	 * Hook for removing the mode's signal handlers.
 	 */
-	HeatMode.prototype.unbind = function() {
+	HoneycombMode.prototype.unbind = function() {
 		var self = this;
 		self.received404.removeAll();
 		self.map.changedViewport.removeAll();
@@ -341,7 +337,7 @@ app.modes = (function() {
 	return {
 		NormalMode: NormalMode,
 		PointMode: PointMode,
-		HeatMode: HeatMode
+		HoneycombMode: HoneycombMode
 	};
 	
 }());

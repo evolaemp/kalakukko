@@ -127,7 +127,7 @@ app.controllers = (function() {
 			});
 		}
 		else if(newMode == 'heat') {
-			self.mode = new app.modes.HeatMode(
+			self.mode = new app.modes.HoneycombMode(
 				self.fileId, self.methodSelect, self.parameterInput
 			);
 			self.mode.received404.add(function() {

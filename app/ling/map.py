@@ -2,6 +2,8 @@ from geopy.distance import great_circle
 
 from app.models import Language
 
+import math
+
 
 
 class Map:
@@ -18,20 +20,41 @@ class Map:
 		"""
 		self.languages = {}
 		
+		latitudes = []
+		longitudes = []
+		
 		for lang in Language.objects.all():
+			if lang.latitude is None or lang.longitude is None:
+				continue
+			
 			self.languages[lang.iso_code] = (lang.latitude, lang.longitude,)
+			latitudes.append((lang.latitude, lang.iso_code))
+			longitudes.append((lang.longitude, lang.iso_code))
+		
+		self.latitude_tree = RangeTree(latitudes)
+		self.longitude_tree = RangeTree(longitudes)
 	
 	
 	def get_nearest(self, latitude, longitude, k):
 		"""
 		Returns list of the nearest k languages to the coords given.
+		Assumes that nearest languages do not lie futher than 5 degrees.
 		"""
 		origin = (latitude, longitude,)
+		
+		north = latitude + 5
+		south = latitude - 5
+		east = longitude + 5
+		west = longitude - 5
+		
+		possible_lang = self.latitude_tree.search(south, north).union(
+						self.longitude_tree.search(west, east))
 		
 		languages = []
 		distances = []
 		
-		for iso_code, coords in self.languages.items():
+		for iso_code in possible_lang:
+			coords = self.languages[iso_code]
 			d = great_circle(origin, coords).kilometers
 			
 			if len(distances) < k or d < distances[-1]:
@@ -59,13 +82,125 @@ class Map:
 		"""
 		origin = (latitude, longitude,)
 		
+		north = latitude + math.ceil(r / 100)
+		south = latitude - math.ceil(r / 100)
+		east = longitude + math.ceil(r / 100)
+		west = longitude - math.ceil(r / 100)
+		
+		possible_lang = self.latitude_tree.search(south, north).union(
+						self.longitude_tree.search(west, east))
+		
 		s = set()
 		
-		for iso_code, coords in self.languages.items():
+		for iso_code in possible_lang:
+			coords = self.languages[iso_code]
 			if great_circle(origin, coords).kilometers <= r:
 				s.add(iso_code)
 		
 		return s
+
+
+
+class RangeTree:
+	"""
+	node: {'left': node, 'right': node, 'value': 42, 'item': None}
+	"""
+	
+	def __init__(self, d):
+		"""
+		Constructor.
+		"""
+		try:
+			leaves = sorted(d)
+		except TypeError:
+			raise ValueError('Unorderable values.')
+		
+		self.tree = RangeTree.create_tree(leaves)
+	
+	
+	def create_tree(leaves):
+		"""
+		Recursively create a tree out of the leaves given.
+		The leaves must be [] of (value, item,) tuples.
+		"""
+		if len(leaves) in (1, 2,):
+			left = {
+				'value': leaves[0][0],
+				'item': leaves[0][1],
+				'left': None,
+				'right': None
+			}
+			
+			if len(leaves) == 2:
+				right = {
+					'value': leaves[1][0],
+					'item': leaves[1][1],
+					'left': None,
+					'right': None
+				}
+			else:
+				right = None
+			
+			value = leaves[0][0]
+		
+		else:
+			half = int(len(leaves) / 2)
+			
+			left = RangeTree.create_tree(leaves[:half])
+			right = RangeTree.create_tree(leaves[half:])
+			
+			value = left['value']
+			if left['right'] is not None:
+				if left['right']['value'] > value:
+					value = left['right']['value']
+		
+		return {
+			'left': left,
+			'right': right,
+			'value': value
+		}
+	
+	
+	def search_tree(tree, a, b):
+		"""
+		Recursively search the tree given.
+		"""
+		if tree['value'] < a:
+			if tree['right'] is None:
+				return set()
+			return RangeTree.search_tree(tree['right'], a, b)
+		
+		if tree['value'] > b:
+			if tree['left'] is None:
+				return set()
+			return RangeTree.search_tree(tree['left'], a, b)
+		
+		
+		if tree['left'] is None and tree['right'] is None:
+			return set([tree['item']])
+		
+		
+		items_left = set()
+		if tree['left'] is not None:
+			items_left = RangeTree.search_tree(tree['left'], a, b)
+		
+		items_right = set()
+		if tree['right'] is not None:
+			items_right = RangeTree.search_tree(tree['right'], a, b)
+		
+		return items_left.union(items_right)
+	
+	
+	def search(self, a, b):
+		"""
+		Wrapper for the static method.
+		"""
+		try:
+			assert a < b
+		except AssertionError:
+			return set()
+		
+		return RangeTree.search_tree(self.tree, a, b)
 
 
 

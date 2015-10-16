@@ -1,14 +1,14 @@
 from django.http import JsonResponse
 from django.views.generic.base import View
 
-from app.ling.heat import Heat
+from app.ling.honeycomb import Honeycomb
 from app.ling.word_matrix import WordMatrix
 
 from utils.json import read_json
 
 
 
-class HeatApiView(View):
+class HoneycombApiView(View):
 	
 	def post(self, request):
 		"""
@@ -16,12 +16,12 @@ class HeatApiView(View):
 		
 		POST
 			id,			# word matrix id
-			north, south, east, west	# heat boundary coords
+			cells,		# [] of [latitude, longitude]
 			method,		# circle or neighbourhood
 			parameter	# circle radius or neighbourhood size
 		
 		200:
-			points: [] of [latitude, longitude, temperature]
+			cells: [] of [latitude, longitude, temperature]
 		
 		400: error
 		404: error		# file not found
@@ -41,14 +41,10 @@ class HeatApiView(View):
 				'error': 'The file has expired. Please re-upload.'
 			}, status=404)
 		
-		heat = Heat()
-		heat.set_area(
-			(post['north'], post['west'],),
-			(post['south'], post['east'],)
-		)
-		points = heat.calculate(matrix, post['method'], post['parameter'])
+		honeycomb = Honeycomb(post['cells'])
+		cells = honeycomb.calculate(matrix, post['method'], post['parameter'])
 		
-		return JsonResponse({'points': points}, status=200)
+		return JsonResponse({'cells': cells}, status=200)
 	
 	
 	def validate_post(self, request_body):
@@ -58,7 +54,7 @@ class HeatApiView(View):
 		post = read_json(request_body)
 		
 		try:
-			assert len(post) == 7
+			assert len(post) == 4
 		except AssertionError:
 			raise ValueError('You cannot pass!')
 		
@@ -70,12 +66,14 @@ class HeatApiView(View):
 		except AssertionError:
 			raise ValueError('Invalid id.')
 		
-		for cardinal_point in ('north', 'south', 'east', 'west',):
-			try:
-				assert cardinal_point in post
-				post[cardinal_point] = float(post[cardinal_point])
-			except (AssertionError, TypeError):
-				raise ValueError('Invalid cardinal point: '+cardinal_point+'.')
+		try:
+			assert 'cells' in post
+			assert type(post['cells']) is list
+			for cell in post['cells']:
+				assert type(cell) is list
+				assert len(cell) == 2
+		except AssertionError:
+			raise ValueError('Invalid cells.')
 		
 		try:
 			assert 'method' in post
