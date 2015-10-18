@@ -63,7 +63,7 @@ class FileApiView(View):
 			raise ValueError('The file is empty.')
 		
 		try:
-			assert f.size <= 1024 * 100
+			assert f.size <= 1024 * 500
 		except AssertionError:
 			raise ValueError('The file exceeds the 100 KB limit.')
 		

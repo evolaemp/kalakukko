@@ -21,27 +21,24 @@ class Honeycomb:
 		"""
 		The workhorse.
 		"""
-		try:
-			assert method in ('circle', 'neighbourhood',)
-		except AssertionError:
-			raise ValueError('Swadeshness needs its parameter.')
-		
-		is_circle = True if method == 'circle' else False
-		
 		planet = Map()
 		
+		if method == 'circle':
+			radius = parameter
+			find = planet.get_in_radius
+		else:
+			radius = 500
+			parameter = parameter + 1
+			find = planet.get_nearest
+		
+		
 		for cell in self.cells:
-			origin = planet.get_nearest(cell[0], cell[1], 1)
-			if len(origin) > 0:
-				origin = origin[0]
-			else:
+			origin = planet.get_single_nearest(cell[0], cell[1], radius)
+			if origin is None:
 				cell.append(0)
 				continue
 			
-			if is_circle:
-				languages = planet.get_in_radius(cell[0], cell[1], parameter)
-			else:
-				languages = planet.get_nearest(cell[0], cell[1], parameter+1)
+			languages = find(cell[0], cell[1], parameter)
 			
 			a, b = [], []
 			for language in languages:

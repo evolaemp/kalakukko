@@ -20,6 +20,22 @@ class MapTestCase(TestCase):
 			'ab', 'os', 'ka', 'ady', 'ddo', 'ce', 'hy', 'dar'
 		])
 	
+	def test_get_single_nearest(self):
+		iberia = self.map.get_single_nearest(40, 0, 500)
+		self.assertEqual(iberia, 'es')
+		
+		elbrus = self.map.get_single_nearest(43, 42, 500)
+		self.assertEqual(elbrus, 'ab')
+		
+		iceland = self.map.get_single_nearest(65, -22, 500)
+		self.assertEqual(iceland, 'is')
+		
+		volga = self.map.get_single_nearest(55, 50, 500)
+		self.assertEqual(volga, 'tt')
+		
+		andes = self.map.get_single_nearest(-15, -70, 500)
+		self.assertEqual(andes, None)
+	
 	def test_get_in_radius(self):
 		iceland = self.map.get_in_radius(65, -22, 1000)
 		self.assertEqual(iceland, set(['is']))

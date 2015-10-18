@@ -56,6 +56,8 @@ The following fixtures are provided for the purposes of unit testing:
   geographical coordinates.
 * `app/fixtures/languages.json` is the database dump of the languages found in
   `app/fixtures/berg.tsv` extracted using the `extract_languages` command.
+* `app/fixtures/locations` is used for unit testing the
+  `harvest_language_locations` command.
 
 
 ## Workflow
@@ -69,6 +71,12 @@ your friends!
 
 
 ### Custom commands
+
+The following two commands are used to populate the database. The latter
+consists of a single model---`Language`---with four fields: `iso_639_3`,
+`iso_639_1`, `latitude`, and `longitude`. You may populate the database in any
+way you want, the commands below are just helpers.
+
 
 ```
 python manage.py extract_languages <tsv_file> [iso_codes_file]
@@ -87,8 +95,18 @@ is `app/fixtures/iso-639-3.tab`.
 ```
 python manage.py harvest_language_info <language_info_file>
 ```
-Collects and stores to the database the geographical distances for the languages
+Collects and stores to the database the geographical locations for the languages
 currently in the database. Languages which are not in the database are ignored.
-If there is a discrepancy between file and database, the user is notified.
+If there is discrepancy between file and database, the user is notified.
+
+
+```
+python manage.py harvest_language_locations <language_locations_file>
+```
+Same as above, but the input format is different. While the previous command
+expects Jäger's language info data files, this command wants to be fed with
+lines of whitespace-separated ISO 639-3 code, latitude, and longitude. If you
+want to use another input format, use this command's code as a starting point.
+Warning: this command overwrites other latlng info in the database.
 
 

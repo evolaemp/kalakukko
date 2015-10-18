@@ -296,22 +296,21 @@ app.controllers = (function() {
 			
 			mainController.uploadFile(fileList[0])
 			.done(function(fileName) {
-				self.button.off();
+				// self.button.off();
 				self.button.html(fileName);
-				self.button.prop('disabled', false);
 			})
-			.fail(function() {
+			.always(function() {
 				self.button.prop('disabled', false);
 			});
 		});
 		
 		mainController.switchedMode.add(function(newMode) {
 			if(newMode == 'normal') {
-				self.button.off();
+				// self.button.off();
 				self.button.html('set source');
-				self.button.on('click', function() {
+				/*self.button.on('click', function() {
 					self.input.click();
-				});
+				});*/
 			}
 		});
 	};

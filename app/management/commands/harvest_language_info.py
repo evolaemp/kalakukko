@@ -14,7 +14,7 @@ class Command(BaseCommand):
 		"Collects and stores to the database the geographical locations "
 		"for the languages currently in the database. "
 		"Languages which are not in the database are ignored. "
-		"If there is a discrepancy between file and database, "
+		"If there is discrepancy between file and database, "
 		"the user is notified."
 	)
 	
