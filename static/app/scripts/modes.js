@@ -91,7 +91,7 @@ app.modes = (function() {
 			if(method == 'circle') {
 				self.addPointOfCircle(
 					latitude, longitude, parameter,
-					data.origin, data.d, data.p
+					data.d, data.p
 				);
 			}
 			else {
@@ -120,11 +120,10 @@ app.modes = (function() {
 	 * @param The latitude of the circle's centre.
 	 * @param The longitude of the circle's centre.
 	 * @param The radius in kilometres.
-	 * @param The ID of the origin language.
 	 * @param The languages in {id: [global, real]} format.
 	 * @param The swadeshness.
 	 */
-	PointMode.prototype.addPointOfCircle = function(latitude, longitude, radius, origin, d, swadeshness) {
+	PointMode.prototype.addPointOfCircle = function(latitude, longitude, radius, d, swadeshness) {
 		var self = this;
 		
 		var point = {type: 'circle', id: self.points.length};
@@ -132,10 +131,21 @@ app.modes = (function() {
 		self.map.addPoint(point.id, latitude, longitude);
 		self.map.addCircle(point.id, latitude, longitude, radius);
 		
-		self.map.highlightLanguage(origin, 1);
+		var languages = [], key = null, i = null;
+		for(key in d) {
+			key = key.split(',');
+			if(key.length != 2) {
+				continue;
+			}
+			for(i in [0, 1]) {
+				if(languages.indexOf(key[i]) == -1) {
+					languages.push(key[i]);
+				}
+			}
+		}
 		
-		for(var languageId in d) {
-			self.map.highlightLanguage(languageId, 2);
+		for(i = 0; i < languages.length; i++) {
+			self.map.highlightLanguage(languages[i], 2);
 		}
 		
 		var div = self.map.addDraggable(point.id);

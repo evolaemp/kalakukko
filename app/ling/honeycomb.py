@@ -17,6 +17,37 @@ class Honeycomb:
 		self.cells = cells
 	
 	
+	def calculate_on_circles(self, word_matrix, radius):
+		"""
+		Calculates the swadeshness of each cell using the circles method.
+		"""
+		planet = Map()
+		
+		for cell in self.cells:
+			languages = planet.get_in_radius(cell[0], cell[1], radius)
+			
+			if len(languages) < 6:
+				cell.append(0)
+				continue
+			
+			global_d, local_d = [], []
+			
+			for lang_a in languages:
+				for lang_b in languages:
+					if lang_a >= lang_b:
+						continue
+					
+					if (lang_a, lang_b) not in word_matrix.d:
+						continue
+					
+					global_d.append(word_matrix.d[(lang_a, lang_b)][0])
+					local_d.append(word_matrix.d[(lang_a, lang_b)][1])
+			
+			cell.append(get_correlation(global_d, local_d))
+		
+		return self.cells
+	
+	
 	def calculate(self, word_matrix, method, parameter):
 		"""
 		The workhorse.

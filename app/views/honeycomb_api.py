@@ -32,6 +32,7 @@ class HoneycombApiView(View):
 		except ValueError as error:
 			return JsonResponse({'error': str(error)}, status=400)
 		
+		
 		matrix = WordMatrix()
 		
 		try:
@@ -41,8 +42,13 @@ class HoneycombApiView(View):
 				'error': 'The file has expired. Please re-upload.'
 			}, status=404)
 		
+		
 		honeycomb = Honeycomb(post['cells'])
-		cells = honeycomb.calculate(matrix, post['method'], post['parameter'])
+		
+		if post['method'] == 'circle':
+			cells = honeycomb.calculate_on_circles(matrix, post['parameter'])
+		else:
+			cells = honeycomb.calculate(matrix, post['method'], post['parameter'])
 		
 		return JsonResponse({'cells': cells}, status=200)
 	

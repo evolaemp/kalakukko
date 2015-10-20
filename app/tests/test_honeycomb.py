@@ -21,10 +21,20 @@ class HoneycombTestCase(TestCase):
 	def tearDown(self):
 		cache.clear()
 	
+	def test_calculate_on_circles(self):
+		honeycomb = Honeycomb(self.cells)
+		
+		honeycomb.calculate_on_circles(self.matrix, 1000)
+		self.assertEqual(len(honeycomb.cells), len(self.cells))
+		
+		for cell in honeycomb.cells:
+			self.assertEqual(len(cell), 3)
+	
 	def test_calculate(self):
 		honeycomb = Honeycomb(self.cells)
-		honeycomb.calculate(self.matrix, 'circle', 1000)
-		self.assertEqual(len(self.cells), 3)
+		
+		honeycomb.calculate(self.matrix, 'neighbourhood', 1000)
+		self.assertEqual(len(honeycomb.cells), len(self.cells))
 	
 	def skip_calculate(self):
 		cells = [[i, j] for i in range(-45, 46) for j in range(0, 90)]

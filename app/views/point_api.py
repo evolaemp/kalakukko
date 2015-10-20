@@ -22,7 +22,7 @@ class PointApiView(View):
 			parameter	# circle radius or neighbourhood size
 		
 		200:
-			origin,		# language used as refernce
+			origin,		# language used as refernce (for neighbourhoods)
 			d, 			# {} of (global, real)
 			p 			# pearson coefficient (the swadeshness)
 		
@@ -44,20 +44,31 @@ class PointApiView(View):
 				'error': 'The file has expired. Please re-upload.'
 			}, status=404)
 		
+		
 		point = Point(post['latitude'], post['longitude'])
 		
-		try:
-			origin, d, p = point.get_swadeshness(
-				matrix,
-				method = post['method'],
-				parameter = post['parameter']
-			)
-		except ValueError as error:
-			return JsonResponse({'error': str(error)}, status=400)
 		
-		return JsonResponse({
-			'origin': origin, 'd': d, 'p': p
-		}, status=200)
+		if post['method'] == 'circle':
+			try:
+				d, p = point.get_swadeshness_in_radius(matrix, post['parameter'])
+			except ValueError as error:
+				return JsonResponse({'error': str(error)}, status=400)
+			
+			return JsonResponse({'d': d, 'p': p}, status=200)
+		
+		else:
+			try:
+				origin, d, p = point.get_swadeshness(
+					matrix,
+					method = post['method'],
+					parameter = post['parameter']
+				)
+			except ValueError as error:
+				return JsonResponse({'error': str(error)}, status=400)
+			
+			return JsonResponse({
+				'origin': origin, 'd': d, 'p': p
+			}, status=200)
 	
 	
 	def validate_post(self, request_body):

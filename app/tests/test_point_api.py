@@ -38,21 +38,23 @@ class PointApiTestCase(TestCase):
 		self.assertEqual(response.status_code, 200)
 		
 		content = read_json(response.content)
-		self.assertEqual(len(content), 3)
-		self.assertIn('origin', content)
+		self.assertEqual(len(content), 2)
 		self.assertIn('d', content)
 		self.assertIn('p', content)
 		
-		self.assertEqual(content['origin'], 'ab')
+		lang = ('ab', 'os', 'ka', 'ady', 'ddo', 'ce', 'hy', 'dar')
+		for i in lang:
+			for j in lang:
+				if i == j:
+					continue
+				key = [i, j]
+				key.sort()
+				key = key[0] +','+ key[1]
+				self.assertIn(key, content['d'])
+		self.assertEqual(len(content['d']), 8*7/2)
 		
-		self.assertEqual(len(content['d']), 7)
-		self.assertIn('os', content['d'])
-		self.assertIn('ka', content['d'])
-		self.assertIn('ady', content['d'])
-		self.assertIn('ddo', content['d'])
-		self.assertIn('ce', content['d'])
-		self.assertIn('dar', content['d'])
-		self.assertIn('hy', content['d'])
+		self.assertLessEqual(content['p'], 1)
+		self.assertGreaterEqual(content['p'], -1)
 	
 	def test_good_neighbourhood(self):
 		self.post['method'] = 'neighbourhood'

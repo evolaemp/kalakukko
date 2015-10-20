@@ -22,6 +22,41 @@ class Point:
 		self.latitude = latitude
 		self.longitude = longitude
 	
+	
+	def get_swadeshness_in_radius(self, word_matrix, radius):
+		"""
+		Calculates the swadeshness within the radius given with respect to the
+		word matrix given.
+		"""
+		globe = Map()
+		
+		languages = globe.get_in_radius(self.latitude, self.longitude, radius)
+		
+		d = {}
+		global_d, local_d = [], []
+		
+		for lang_a in languages:
+			for lang_b in languages:
+				if lang_a == lang_b:
+					continue
+				
+				if lang_a > lang_b:
+					continue
+				
+				if (lang_a, lang_b) not in word_matrix.d:
+					continue
+				
+				key = lang_a +','+ lang_b
+				d[key] = word_matrix.d[(lang_a, lang_b)]
+				
+				global_d.append(d[key][0])
+				local_d.append(d[key][1])
+		
+		p = get_correlation(global_d, local_d)
+		
+		return d, p
+	
+	
 	def get_swadeshness(self, word_matrix, method, parameter):
 		"""
 		Calculates the swadeshness of the area as defined by the parameter with

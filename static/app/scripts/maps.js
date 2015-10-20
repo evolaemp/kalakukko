@@ -323,7 +323,6 @@ app.maps = (function() {
 	/**
 	 * Adds honeycomb layer on the map.
 	 * There is only one honeycomb layer at a time.
-	 * 
 	 */
 	OpenStreetMap.prototype.createHoneycomb = function() {
 		var self = this;
@@ -332,8 +331,31 @@ app.maps = (function() {
 			self.removeHoneycomb();
 		}
 		
-		self.honeycomb = new HoneycombLayer(self.changedViewport);
+		self.honeycomb = new HoneycombLayer();
+		self.honeycomb.addSignal(self.changedViewport);
 		self.honeycomb.addTo(self.map);
+		
+		self.hexagonMarker = new HoneycombLayer();
+		self.hexagonMarker.addTo(self.map);
+		
+		self.map.on('click', self._handleHoneycombClick, self);
+	};
+	
+	/**
+	 * Event handler for honeycomb clicking.
+	 * 
+	 * @private
+	 * @param The L-augmented event.
+	 */
+	OpenStreetMap.prototype._handleHoneycombClick = function(e) {
+		var self = this;
+		
+		var cell = self.honeycomb.getContainingHexagon(e.containerPoint.x, e.containerPoint.y);
+		var temperature = self.honeycomb.getHexagonTemperature(cell[0], cell[1]);
+		
+		self.hexagonMarker.clear();
+		
+		self.hexagonMarker.drawMarker(cell[0], cell[1], temperature);
 	};
 	
 	/**
@@ -356,25 +378,52 @@ app.maps = (function() {
 		if(self.honeycomb) {
 			self.map.removeLayer(self.honeycomb);
 		}
+		if(self.hexagonMarker) {
+			self.map.removeLayer(self.hexagonMarker);
+		}
+		
+		self.map.off('click', self._handleHoneycombClick, self);
 	};
 	
 	
 	/**
 	 * Leaflet layer for the honeycomb.
-	 * Wrapper around HoneycombCanvas.
+	 * 
+	 * This class is used by two layers: one for the honeycomb itself, and
+	 * another one for individual cell highlighting.
 	 * 
 	 * @class
 	 * @see Source code of Leaflet.heat.
 	 */
 	var HoneycombLayer = L.Class.extend({
-		initialize: function(changedViewport) {
+		initialize: function() {
 			var self = this;
 			
+			self.map = null;
 			self.canvas = null;
 			self.ctx = null;
-			self.cells = [];
 			
-			self.changedViewport = changedViewport;
+			/**
+			 * [] of [x, y]
+			 * [] of [latitude, longitude, temperature]
+			 * Indices coincide.
+			 * But the latter is only defined after redraw() and before the
+			 * next _reset() call.
+			 */
+			self.cells = [];
+			self.data = null;
+			
+			/**
+			 * The hexagon side and height.
+			 */
+			self.a = 20;
+			self.h = Math.sin(Math.PI / 3) * self.a;
+			
+			/**
+			 * If set, the signal will be dispatched at _reset().
+			 * @see addSignal().
+			 */
+			self.changedViewport = null;
 		},
 		
 		onAdd: function(map) {
@@ -406,6 +455,11 @@ app.maps = (function() {
 			return self;
 		},
 		
+		addSignal: function(signal) {
+			var self = this;
+			self.changedViewport = signal;
+		},
+		
 		_initCanvas: function() {
 			var self = this;
 			
@@ -416,7 +470,6 @@ app.maps = (function() {
 			self.canvas.width = size.x;
 			self.canvas.height = size.y;
 			
-			// self.honeycomb = new HoneycombCanvas(self.canvas);
 			self.ctx = self.canvas.getContext('2d');
 		},
 		
@@ -434,13 +487,12 @@ app.maps = (function() {
 				self.canvas.height = size.y;
 			}
 			
-			self.ctx.clearRect(0, 0, self.canvas.width, self.canvas.height);
+			self.clear();
 			self.cells = [];
+			self.data = null;
 			
 			
-			var a = 20;
-			var h = Math.sin(Math.PI / 3) * a;
-			
+			var a = self.a, h = self.h;
 			var x = 0, y = 0, row = 0, latLng = [], coords = [];
 			
 			while(true) {
@@ -466,17 +518,24 @@ app.maps = (function() {
 				}
 			}
 			
-			self.changedViewport.dispatch(coords);
+			if(self.changedViewport) {
+				self.changedViewport.dispatch(coords);
+			}
 		},
 		
+		/**
+		 * Fills the canvas with hexagons, the centres of which should have
+		 * already been calculated by the _reset() method.
+		 * 
+		 * @see OpenStreetMap.updateHoneycomb().
+		 * @param [] of [latitude, longitude, temperature].
+		 */
 		redraw: function(data) {
 			var self = this;
 			
-			self.ctx.clearRect(0, 0, self.canvas.width, self.canvas.height);
+			self.clear();
 			
-			var a = 20;
-			var h = Math.sin(Math.PI / 3) * a;
-			
+			var a = self.a, h = self.h;
 			var i = 0, colour = '', lightness = 0;
 			
 			for(i = 0; i < self.cells.length; i++) {
@@ -494,8 +553,22 @@ app.maps = (function() {
 				
 				self._drawHexagon(self.cells[i][0], self.cells[i][1], a, h, colour);
 			}
+			
+			self.data = data;
 		},
 		
+		/**
+		 * Draws a hexagon.
+		 * 
+		 * The perpendicular is derivable from the side, but we do not want to make
+		 * the same calculation over and over when mass producing hexagons.
+		 * 
+		 * @param The x of hexagon's centre.
+		 * @param The y of hexagon's centre.
+		 * @param The hexagon's side.
+		 * @param The hexagon's perpendicular (centre to side).
+		 * @param The colour to fill the hexagon with.
+		 */
 		_drawHexagon: function(x, y, a, h, colour) {
 			var self = this;
 			
@@ -510,88 +583,107 @@ app.maps = (function() {
 			
 			self.ctx.fillStyle = colour;
 			self.ctx.fill();
-		}
-	});
-	
-	
-	/**
-	 * Handles the (re-)drawing of the honeycomb.
-	 * Encapsulates the canvas interactions.
-	 * 
-	 * @class
-	 * @param The canvas to draw the honeycomb on.
-	 */
-	var HoneycombCanvas = function(canvas) {
-		var self = this;
+		},
 		
-		self.canvas = canvas;
-		self.ctx = self.canvas.getContext('2d');
-		
-		self.points = [];
-	};
-	
-	/**
-	 * Clears the canvas and draws the hexagons on it.
-	 */
-	HoneycombCanvas.prototype.redraw = function() {
-		var self = this;
-		
-		self.ctx.clearRect(0, 0, self.canvas.width, self.canvas.height);
-		self.points = [];
-		
-		var a = 10;
-		var h = Math.sin(Math.PI / 3) * a;
-		var x = 0, y = 0, row = 0;
-		
-		while(true) {
-			x = (row % 2) ? -3/2*a : 0;
-			y = row*h;
+		/**
+		 * Returns the centre of the hexagon that contains the point given.
+		 * 
+		 * @param The x of the point.
+		 * @param The y of the point.
+		 * @return [x, y] of the hexagon's centre.
+		 */
+		getContainingHexagon: function(x, y) {
+			var self = this;
 			
-			while(true) {
-				// self.drawHexagon(x, y, a, h, 'black');
-				self.points.push([x, y]);
-				x += 3*a;
-				if(x > self.canvas.width + 3*a) {
-					break;
+			var A = [], B = [], AP = null, BP = null;
+			var rectWidth = 3/2 * self.a;
+			var rectHeight = self.h;
+			
+			var rectX = parseInt(x / rectWidth);
+			var rectY = parseInt(y / rectHeight);
+			
+			if((rectX % 2 && rectY % 2) || (!(rectX % 2) && !(rectY %2))) {
+				A = [rectX * rectWidth, rectY * rectHeight];
+				B = [(rectX + 1) * rectWidth, (rectY + 1) * rectHeight];
+			}
+			else {
+				A = [rectX * rectWidth, (rectY + 1) * rectHeight];
+				B = [(rectX + 1) * rectWidth, rectY * rectHeight];
+			}
+			
+			AP = Math.sqrt(Math.pow(x - A[0], 2) + Math.pow(y - A[1], 2));
+			BP = Math.sqrt(Math.pow(x - B[0], 2) + Math.pow(y - B[1], 2));
+			
+			if(AP < BP) {
+				return A;
+			}
+			else {
+				return B;
+			}
+		},
+		
+		/**
+		 * Finds the temperature of the cell, the centre of which is (x, y).
+		 * 
+		 * @param The x of the cell's centre.
+		 * @param The y of the cell's centre.
+		 */
+		getHexagonTemperature: function(x, y) {
+			var self = this;
+			
+			for(var i = 0; i < self.cells.length; i++) {
+				if(self.cells[i][0] == x && self.cells[i][1] == y) {
+					return self.data[i][2];
 				}
 			}
 			
-			row += 1;
+			return 0;
+		},
+		
+		/**
+		 * Draws an empty cell with border.
+		 * 
+		 * Used by the hexagonMarker layer instance.
+		 * @see OpenStreetMap._handleHoneycombClick().
+		 * 
+		 * @param The x of the cell's centre.
+		 * @param The y of the cell's centre.
+		 * @param The cell's temperature.
+		 */
+		drawMarker: function(x, y, temperature) {
+			var self = this;
+			var a = self.a, h = self.h;
 			
-			if(y > self.canvas.height) {
-				break;
-			}
+			self.ctx.beginPath();
+			self.ctx.moveTo(x-a, y);
+			self.ctx.lineTo(x-a/2, y+h);
+			self.ctx.lineTo(x+a/2, y+h);
+			self.ctx.lineTo(x+a, y);
+			self.ctx.lineTo(x+a/2, y-h);
+			self.ctx.lineTo(x-a/2, y-h);
+			self.ctx.closePath();
+			
+			self.ctx.strokeStyle = 'red';
+			self.ctx.lineWidth = 2;
+			self.ctx.stroke();
+			
+			self.ctx.font = '16px Fira Sans';
+			self.ctx.textAlign = 'center';
+			self.ctx.textBaseline = 'middle';
+			self.ctx.fillStyle = 'black';
+			
+			temperature = temperature.toString().substr(0, 4);
+			self.ctx.fillText(temperature, x, y);
+		},
+		
+		/**
+		 * Clears the layer's canvas.
+		 */
+		clear: function() {
+			var self = this;
+			self.ctx.clearRect(0, 0, self.canvas.width, self.canvas.height);
 		}
-	};
-	
-	/**
-	 * Draws a hexagon.
-	 * 
-	 * The perpendicular is derivable from the side, but we do not want to make
-	 * the same calculation over and over when mass producing hexagons.
-	 * 
-	 * @param The x of hexagon's centre.
-	 * @param The y of hexagon's centre.
-	 * @param The hexagon's side.
-	 * @param The hexagon's perpendicular (centre to side).
-	 * @param The colour to fill the hexagon with.
-	 */
-	HoneycombCanvas.prototype.drawHexagon = function(x, y, a, h, colour) {
-		var self = this;
-		
-		self.ctx.beginPath();
-		self.ctx.moveTo(x-a, y);
-		self.ctx.lineTo(x-a/2, y+h);
-		self.ctx.lineTo(x+a/2, y+h);
-		self.ctx.lineTo(x+a, y);
-		self.ctx.lineTo(x+a/2, y-h);
-		self.ctx.lineTo(x-a/2, y-h);
-		self.ctx.closePath();
-		
-		// self.ctx.fillStyle = colour;
-		// self.ctx.fill();
-		self.ctx.stroke();
-	};
+	});
 	
 	
 	/**
