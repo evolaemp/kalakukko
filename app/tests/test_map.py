@@ -1,7 +1,99 @@
 from django.test import TestCase
 
+from geopy.distance import great_circle
+
+from hypothesis.strategies import floats, integers, tuples
+from hypothesis import given, assume
+
 from app.ling.map import Map
-from app.ling.map import RangeTree
+
+
+
+class MapStaticTestCase(TestCase):
+	"""
+	For Map's static methods.
+	"""
+	def test_great_circle(self):
+		a, b = (41.49008, -71.312796), (41.499498, -81.695391)
+		self.assertEqual(
+			round(Map.great_circle(a, b)),
+			round(great_circle(a, b).km)
+		)
+		
+		a, b = (42.01, 42.01), (42.02, 42.02)
+		self.assertEqual(
+			round(Map.great_circle(a, b)),
+			round(great_circle(a, b).km)
+		)
+	
+	@given(
+		tuples(
+			floats(min_value=-90.0, max_value=90.0), floats(min_value=-180.0, max_value=180)
+		),
+		tuples(
+			floats(min_value=-90.0, max_value=90.0), floats(min_value=-180.0, max_value=180)
+		)
+	)
+	def test_great_circle_hypothetically(self, a, b):
+		self.assertEqual(
+			round(Map.great_circle(a, b)),
+			round(great_circle(a, b).km)
+		)
+	
+	def test_make_tetragon(self):
+		for latitude, longitude, x in [
+			(0, 0, 1000), (70, 0, 2000), (42, 42, 1500),
+			(-42, -42, 1500), (42, -42, 1500), (-42, 42, 1500),
+		]:
+			centre = (latitude, longitude)
+			tetragon = Map.make_tetragon(latitude, longitude, x)
+			
+			self.assertGreater(tetragon['north'], latitude)
+			self.assertLess(tetragon['north'], 90)
+			d = great_circle(centre, (tetragon['north'], longitude)).km
+			self.assertEqual(round(d), x)
+			
+			self.assertLess(tetragon['south'], latitude)
+			self.assertGreater(tetragon['south'], -90)
+			d = great_circle(centre, (tetragon['south'], longitude)).km
+			self.assertEqual(round(d), x)
+			
+			self.assertGreater(tetragon['east'], longitude)
+			self.assertLess(tetragon['east'], 180)
+			d = great_circle(centre, (latitude, tetragon['east'])).km
+			self.assertEqual(round(d), x)
+			
+			self.assertLess(tetragon['west'], longitude)
+			self.assertGreater(tetragon['west'], -180)
+			d = great_circle(centre, (latitude, tetragon['west'])).km
+			self.assertEqual(round(d), x)
+	
+	@given(
+		floats(min_value=-70.0, max_value=70.0),
+		floats(min_value=-180.0, max_value=180.0),
+		integers(min_value=1, max_value=2000)
+	)
+	def test_make_tetragon_hypothetically(self, latitude, longitude, x):
+		centre = (latitude, longitude)
+		tetragon = Map.make_tetragon(latitude, longitude, x)
+		
+		self.assertGreater(tetragon['north'], latitude)
+		self.assertLess(tetragon['north'], 90)
+		d = great_circle(centre, (tetragon['north'], longitude)).km
+		self.assertEqual(round(d), x)
+		
+		self.assertLess(tetragon['south'], latitude)
+		self.assertGreater(tetragon['south'], -90)
+		d = great_circle(centre, (tetragon['south'], longitude)).km
+		self.assertEqual(round(d), x)
+		
+		self.assertGreater(tetragon['east'], longitude)
+		d = great_circle(centre, (latitude, tetragon['east'])).km
+		self.assertEqual(round(d), x)
+		
+		self.assertLess(tetragon['west'], longitude)
+		d = great_circle(centre, (latitude, tetragon['west'])).km
+		self.assertEqual(round(d), x)
 
 
 
@@ -47,106 +139,6 @@ class MapTestCase(TestCase):
 		
 		andes = self.map.get_in_radius(-15, -70, 1000)
 		self.assertEqual(andes, set())
-
-
-
-class RangeTreeTestCase(TestCase):
-	def test_init(self):
-		data_raw = [(3, 'three'), (1, 'one'), (2, 'two')]
-		data_gut = [(1, 'one'), (2, 'two'), (3, 'three')]
-		tree = RangeTree(data_raw)
-		self.assertEqual(tree.tree, RangeTree.create_tree(data_gut))
-		
-		data_raw = [(42.0, 'float'), (-42, 'negative'), (0, 'zero')]
-		data_gut = [(-42, 'negative'), (0, 'zero'), (42.0, 'float')]
-		tree = RangeTree(data_raw)
-		self.assertEqual(tree.tree, RangeTree.create_tree(data_gut))
-	
-	def test_create_tree_of_three(self):
-		data = [(1, 'one'), (2, 'two'), (3, 'three')]
-		tree = RangeTree.create_tree(data)
-		
-		self.assertEqual(tree['left']['left'], {
-			'left': None, 'right': None, 'value': 1, 'item': 'one'
-		})
-		
-		self.assertEqual(tree['right']['left'], {
-			'left': None, 'right': None, 'value': 2, 'item': 'two'
-		})
-		self.assertEqual(tree['right']['right'], {
-			'left': None, 'right': None, 'value': 3, 'item': 'three'
-		})
-		self.assertEqual(tree['right'], {
-			'left': tree['right']['left'],
-			'right': tree['right']['right'],
-			'value': 2
-		})
-		
-		self.assertEqual(tree, {
-			'left': tree['left'],
-			'right': tree['right'],
-			'value': 1
-		})
-	
-	def test_create_tree_of_four(self):
-		data = [(1, 'one'), (2, 'two'), (3, 'three'), (4, 'four')]
-		tree = RangeTree.create_tree(data)
-		
-		self.assertEqual(tree['left']['left'], {
-			'left': None, 'right': None, 'value': 1, 'item': 'one'
-		})
-		self.assertEqual(tree['left']['right'], {
-			'left': None, 'right': None, 'value': 2, 'item': 'two'
-		})
-		self.assertEqual(tree['left'], {
-			'left': tree['left']['left'],
-			'right': tree['left']['right'],
-			'value': 1
-		})
-		
-		self.assertEqual(tree['right']['left'], {
-			'left': None, 'right': None, 'value': 3, 'item': 'three'
-		})
-		self.assertEqual(tree['right']['right'], {
-			'left': None, 'right': None, 'value': 4, 'item': 'four'
-		})
-		self.assertEqual(tree['right'], {
-			'left': tree['right']['left'],
-			'right': tree['right']['right'],
-			'value': 3
-		})
-		
-		self.assertEqual(tree, {
-			'left': tree['left'],
-			'right': tree['right'],
-			'value': 2
-		})
-	
-	def test_search_tree_of_three(self):
-		data = [(1, 'one'), (2, 'two'), (3, 'three')]
-		tree = RangeTree.create_tree(data)
-		
-		items = RangeTree.search_tree(tree, 1.5, 2.5)
-		self.assertEqual(items, set(['two']))
-		
-		items = RangeTree.search_tree(tree, 0, 4)
-		self.assertEqual(items, set(['one', 'two', 'three']))
-		
-		items = RangeTree.search_tree(tree, 42, 60)
-		self.assertEqual(items, set())
-	
-	def test_search_tree_of_four(self):
-		data = [(1, 'one'), (2, 'two'), (3, 'three'), (4, 'four')]
-		tree = RangeTree.create_tree(data)
-		
-		items = RangeTree.search_tree(tree, 1.5, 2.5)
-		self.assertEqual(items, set(['two']))
-		
-		items = RangeTree.search_tree(tree, 1, 4)
-		self.assertEqual(items, set(['one', 'two', 'three', 'four']))
-		
-		items = RangeTree.search_tree(tree, 42, 60)
-		self.assertEqual(items, set())
 
 
 

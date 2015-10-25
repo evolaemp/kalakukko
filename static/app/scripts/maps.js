@@ -536,15 +536,20 @@ app.maps = (function() {
 			self.clear();
 			
 			var a = self.a, h = self.h;
-			var i = 0, colour = '', lightness = 0;
+			var i = 0, colour = '';
+			var hue = 0, lightness = 0;
 			
 			for(i = 0; i < self.cells.length; i++) {
-				if(data[i][2] == 0) {
-					continue;
+				if(data[i][2] > 0.8) {
+					lightness = 130 - parseInt(data[i][2] * 100);
+					colour = 'hsl(0, 100%, '+ lightness +'%)';
 				}
 				else if(data[i][2] > 0) {
-					lightness = 100 - parseInt(data[i][2] * 50);
-					colour = 'hsl(0, 100%, '+ lightness +'%)';
+					hue = 80 - parseInt(data[i][2] * 100);
+					colour = 'hsl('+ hue +', 100%, 50%)';
+				}
+				else if(data[i][2] == 0) {
+					continue;
 				}
 				else {
 					lightness = 100 + parseInt(data[i][2] * 50);
@@ -663,7 +668,7 @@ app.maps = (function() {
 			self.ctx.lineTo(x-a/2, y-h);
 			self.ctx.closePath();
 			
-			self.ctx.strokeStyle = 'red';
+			self.ctx.strokeStyle = 'hsl(0, 100%, 30%)';
 			self.ctx.lineWidth = 2;
 			self.ctx.stroke();
 			

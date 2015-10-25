@@ -66,7 +66,7 @@ class Point:
 		"""
 		globe = Map()
 		
-		origin = globe.get_nearest(self.latitude, self.longitude, 1)[0]
+		origin = globe.get_single_nearest(self.latitude, self.longitude, 1000)
 		
 		if method == 'circle':
 			languages = globe.get_in_radius(self.latitude, self.longitude, parameter)

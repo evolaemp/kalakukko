@@ -1,8 +1,9 @@
-from geopy.distance import great_circle
+from geopy.distance import EARTH_RADIUS
 
 from app.models import Language
+from app.ling.range_tree import RangeTree
 
-import math
+from math import pi, sin, cos, acos, degrees, radians
 
 
 
@@ -35,6 +36,49 @@ class Map:
 		self.longitude_tree = RangeTree(longitudes)
 	
 	
+	@staticmethod
+	def great_circle(A, B):
+		"""
+		Calculates the great circle distance between the points given.
+		The distance returned is in kilometres.
+		"""
+		d = acos(
+			sin(radians(A[0])) * sin(radians(B[0]))
+			+ cos(radians(A[0])) * cos(radians(B[0])) * cos(radians(abs(A[1] - B[1])))
+		)
+		return d * EARTH_RADIUS
+	
+	
+	@staticmethod
+	def make_tetragon(latitude, longitude, x):
+		"""
+		Makes a tetragon: two of its sides are parallels, two are meridians,
+		and each side is supposedly at distance x from the centre.
+		"""
+		delta_latitude = 360 * x / (2 * pi * EARTH_RADIUS)
+		
+		delta_longitude = acos(
+			( cos(radians(360 * x / (2 * pi * EARTH_RADIUS))) - sin(radians(latitude)) ** 2 )
+			/ cos(radians(latitude)) ** 2
+		)
+		delta_longitude = degrees(delta_longitude)
+		
+		tetragon = {
+			'north': latitude + delta_latitude,
+			'south': latitude - delta_latitude,
+			'east': longitude + delta_longitude,
+			'west': longitude - delta_longitude,
+		}
+		
+		try:
+			assert tetragon['north'] <= 90
+			assert tetragon['south'] >= -90
+		except AssertionError:
+			raise ValueError('Avoid the (ant)arctic chill.')
+		
+		return tetragon
+	
+	
 	def get_in_tetragon(self, latitude, longitude, h):
 		"""
 		Returns set of languages located within the tetragon defined as:
@@ -44,23 +88,24 @@ class Map:
 		"""
 		centre = (latitude, longitude)
 		
-		north = latitude
-		while great_circle(centre, (north, longitude)).km < h:
-			north = north + 1
+		tetragon = Map.make_tetragon(latitude, longitude, h)
 		
-		south = latitude
-		while great_circle(centre, (south, longitude)).km < h:
-			south = south - 1
+		south_north = self.latitude_tree.search(tetragon['south'], tetragon['north'])
 		
-		east = longitude
-		while great_circle(centre, (latitude, east)).km < h:
-			east = east + 1
-		west = longitude - (east - longitude)
+		if tetragon['west'] >= -180 and tetragon['east'] <= 180:
+			west_east = self.longitude_tree.search(tetragon['west'], tetragon['east'])
+		elif tetragon['west'] >= -180 and tetragon['east'] > 180:
+			west_east = self.longitude_tree.search(tetragon['west'], 180)
+			east = self.longitude_tree.search(-180, tetragon['east']-360)
+			west_east = west_east.union(east)
+		elif tetragon['west'] < -180 and tetragon['east'] <= 180:
+			west = self.longitude_tree.search(tetragon['west']+360, 180)
+			west_east = self.longitude_tree.search(-180, tetragon['east'])
+			west_east = west_east.union(west)
+		else:
+			raise ValueError('Tetragon ate the Earth.')
 		
-		possible_lang = self.latitude_tree.search(south, north).union(
-						self.longitude_tree.search(west, east))
-		
-		return possible_lang
+		return south_north.intersection(west_east)
 	
 	
 	def get_nearest(self, latitude, longitude, k):
@@ -77,7 +122,7 @@ class Map:
 		
 		for iso_code in possible_lang:
 			coords = self.languages[iso_code]
-			d = great_circle(origin, coords).kilometers
+			d = Map.great_circle(origin, coords)
 			
 			if len(distances) < k or d < distances[-1]:
 				for i, j in enumerate(distances):
@@ -111,7 +156,7 @@ class Map:
 		
 		for iso_code in possible_lang:
 			coords = self.languages[iso_code]
-			d = great_circle(origin, coords).kilometers
+			d = Map.great_circle(origin, coords)
 			
 			if smallest_dist is None or d < smallest_dist:
 				smallest_dist = d
@@ -133,113 +178,10 @@ class Map:
 		
 		for iso_code in possible_lang:
 			coords = self.languages[iso_code]
-			if great_circle(origin, coords).kilometers <= r:
+			if Map.great_circle(origin, coords) <= r:
 				s.add(iso_code)
 		
 		return s
-
-
-
-class RangeTree:
-	"""
-	node: {'left': node, 'right': node, 'value': 42, 'item': None}
-	"""
-	
-	def __init__(self, d):
-		"""
-		Constructor.
-		"""
-		try:
-			leaves = sorted(d)
-		except TypeError:
-			raise ValueError('Unorderable values.')
-		
-		self.tree = RangeTree.create_tree(leaves)
-	
-	
-	def create_tree(leaves):
-		"""
-		Recursively create a tree out of the leaves given.
-		The leaves must be [] of (value, item,) tuples.
-		"""
-		if len(leaves) in (1, 2,):
-			left = {
-				'value': leaves[0][0],
-				'item': leaves[0][1],
-				'left': None,
-				'right': None
-			}
-			
-			if len(leaves) == 2:
-				right = {
-					'value': leaves[1][0],
-					'item': leaves[1][1],
-					'left': None,
-					'right': None
-				}
-			else:
-				right = None
-			
-			value = leaves[0][0]
-		
-		else:
-			half = int(len(leaves) / 2)
-			
-			left = RangeTree.create_tree(leaves[:half])
-			right = RangeTree.create_tree(leaves[half:])
-			
-			value = left['value']
-			if left['right'] is not None:
-				if left['right']['value'] > value:
-					value = left['right']['value']
-		
-		return {
-			'left': left,
-			'right': right,
-			'value': value
-		}
-	
-	
-	def search_tree(tree, a, b):
-		"""
-		Recursively search the tree given.
-		"""
-		if tree['value'] < a:
-			if tree['right'] is None:
-				return set()
-			return RangeTree.search_tree(tree['right'], a, b)
-		
-		if tree['value'] > b:
-			if tree['left'] is None:
-				return set()
-			return RangeTree.search_tree(tree['left'], a, b)
-		
-		
-		if tree['left'] is None and tree['right'] is None:
-			return set([tree['item']])
-		
-		
-		items_left = set()
-		if tree['left'] is not None:
-			items_left = RangeTree.search_tree(tree['left'], a, b)
-		
-		items_right = set()
-		if tree['right'] is not None:
-			items_right = RangeTree.search_tree(tree['right'], a, b)
-		
-		return items_left.union(items_right)
-	
-	
-	def search(self, a, b):
-		"""
-		Wrapper for the static method.
-		"""
-		try:
-			assert a < b
-		except AssertionError:
-			return set()
-		
-		return RangeTree.search_tree(self.tree, a, b)
 
 
 

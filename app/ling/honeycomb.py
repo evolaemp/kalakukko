@@ -1,8 +1,6 @@
 from app.ling.map import Map
 from app.ling.math import get_correlation
 
-import random
-
 
 
 class Honeycomb:
