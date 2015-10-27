@@ -6,6 +6,7 @@ def get_correlation(a, b):
 	"""
 	Calculates the Pearson correlation coefficient for the populations given.
 	Returns 0 if the populations cannot be correlated.
+	The return value is rounded to 5 digits after the decimal point.
 	"""
 	try:
 		assert len(a) == len(b) > 0
@@ -14,8 +15,8 @@ def get_correlation(a, b):
 	
 	size = len(a)
 	
-	mean_a = sum(a) / size
-	mean_b = sum(b) / size
+	mean_a = math.fsum(a) / size
+	mean_b = math.fsum(b) / size
 	
 	"""
 	cov(X, Y) = E[(X - µX)(Y - µY)]
@@ -29,8 +30,8 @@ def get_correlation(a, b):
 	
 	for i in range(0, size):
 		cov += (a[i] - mean_a) * (b[i] - mean_b)
-		var_a += pow(a[i] - mean_a, 2)
-		var_b += pow(b[i] - mean_b, 2)
+		var_a += math.pow(a[i] - mean_a, 2)
+		var_b += math.pow(b[i] - mean_b, 2)
 	
 	cov = cov / size
 	
@@ -54,7 +55,7 @@ def get_correlation(a, b):
 	p(X, Y) = cov(X, Y) / σ(X)σ(Y)
 	"""
 	p = cov / (sigma_a * sigma_b)
-	return p
+	return round(p, 5)
 
 
 

@@ -1,6 +1,7 @@
 from django.http import JsonResponse
 from django.views.generic.base import View
 
+from app.ling.map import MapError
 from app.ling.point import Point
 from app.ling.word_matrix import WordMatrix
 
@@ -51,19 +52,15 @@ class PointApiView(View):
 		if post['method'] == 'circle':
 			try:
 				d, p = point.get_swadeshness_in_radius(matrix, post['parameter'])
-			except ValueError as error:
+			except MapError as error:
 				return JsonResponse({'error': str(error)}, status=400)
 			
 			return JsonResponse({'d': d, 'p': p}, status=200)
 		
 		else:
 			try:
-				origin, d, p = point.get_swadeshness(
-					matrix,
-					method = post['method'],
-					parameter = post['parameter']
-				)
-			except ValueError as error:
+				origin, d, p = point.get_swadeshness_by_nearest(matrix, post['parameter'])
+			except MapError as error:
 				return JsonResponse({'error': str(error)}, status=400)
 			
 			return JsonResponse({

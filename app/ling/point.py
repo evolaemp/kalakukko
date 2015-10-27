@@ -5,14 +5,12 @@ from app.ling.math import get_correlation
 
 class Point:
 	"""
-	Main purpose: to calculate its own swadeshness, done in 4 steps:
-	(1) Get the reference language, i.e. the one nearest to the point. This is
-	delegated to app.ling.map.
-	(2) Get the other relevant languages, where relevance is determined by the
+	Main purpose: to calculate its own swadeshness, done in 3 steps:
+	(1) Get the relevant languages, where relevance is determined by the
 	parameter. This is delegated to app.ling.map.
-	(3) Get the linguistic distance values for those languages from the
+	(2) Get the linguistic distance values for those languages from the
 	relevant app.ling.word_matrix.
-	(4) Process those values using an app.ling.math.
+	(3) Process those values using an app.ling.math.
 	"""
 	
 	def __init__(self, latitude, longitude):
@@ -57,35 +55,29 @@ class Point:
 		return d, p
 	
 	
-	def get_swadeshness(self, word_matrix, method, parameter):
+	def get_swadeshness_by_nearest(self, word_matrix, k):
 		"""
-		Calculates the swadeshness of the area as defined by the parameter with
-		respect to the word matrix given.
-		The method is either 'circle' or 'neighbourhood'.
-		The parameter must be positive integer.
+		Calculates the swadeshness of the k languages nearest to the language
+		which is nearest to the point. Only the distances between that nearest
+		language (the origin) and each of the others are taken into account. 
+		The parameter k must be positive integer.
 		"""
 		globe = Map()
 		
 		origin = globe.get_single_nearest(self.latitude, self.longitude, 1000)
-		
-		if method == 'circle':
-			languages = globe.get_in_radius(self.latitude, self.longitude, parameter)
-		elif method == 'neighbourhood':
-			languages = globe.get_nearest(self.latitude, self.longitude, parameter+1)
-		else:
-			raise ValueError('Swadeshness needs its parameter.')
+		languages = globe.get_nearest(self.latitude, self.longitude, k+1)
 		
 		d = {}
-		a, b = [], []
+		global_d, local_d = [], []
 		
 		for language in languages:
 			distance_pair = word_matrix.get_distances(origin, language)
 			if distance_pair is not None:
 				d[language] = distance_pair
-				a.append(distance_pair[0])
-				b.append(distance_pair[1])
+				global_d.append(distance_pair[0])
+				local_d.append(distance_pair[1])
 		
-		p = get_correlation(a, b)
+		p = get_correlation(global_d, local_d)
 		
 		return origin, d, p
 

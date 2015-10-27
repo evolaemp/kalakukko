@@ -19,7 +19,9 @@ class PointTestCase(TestCase):
 		s = elbrus.get_swadeshness_in_radius(self.matrix, 500)
 		
 		self.assertEqual(len(s), 2)
-		self.assertEqual(len(s[0]), 8*7/2)
+		d, p = s
+		
+		self.assertEqual(len(d), 8*7/2)
 		
 		lang = ('ab', 'os', 'ka', 'ady', 'ddo', 'ce', 'hy', 'dar')
 		for i in lang:
@@ -29,22 +31,26 @@ class PointTestCase(TestCase):
 				key = [i, j]
 				key.sort()
 				key = key[0] +','+ key[1]
-				self.assertIn(key, s[0])
+				self.assertIn(key, d)
 		
-		self.assertLessEqual(s[1], 1)
-		self.assertGreaterEqual(s[1], -1)
+		self.assertLessEqual(p, 1)
+		self.assertGreaterEqual(p, -1)
 	
-	def test_circle_swadeshness(self):
+	def test_neighbourhood_swadeshness(self):
 		elbrus = Point(43, 42)
-		s = elbrus.get_swadeshness(self.matrix, 'circle', 500)
+		s = elbrus.get_swadeshness_by_nearest(self.matrix, 7)
 		
 		self.assertEqual(len(s), 3)
-		self.assertEqual(s[0], 'ab')
+		origin, d, p = s
 		
-		self.assertEqual(len(s[1]), 7)
+		self.assertEqual(origin, 'ab')
 		
-		self.assertLessEqual(s[2], 1)
-		self.assertGreaterEqual(s[2], -1)
+		lang = ('os', 'ka', 'ady', 'ddo', 'ce', 'hy', 'dar')
+		for i in lang:
+			self.assertIn(i, d)
+		
+		self.assertLessEqual(p, 1)
+		self.assertGreaterEqual(p, -1)
 
 
 

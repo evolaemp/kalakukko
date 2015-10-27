@@ -266,6 +266,12 @@ app.modes = (function() {
 		self.parameterInput = parameterInput;
 		
 		/**
+		 * Prevents drawing the wrong honeycomb.
+		 * Keeps the first cell of the currently awaited honeycomb.
+		 */
+		self.firstCell = [null, null];
+		
+		/**
 		 * Fired upon receiving 404 from the server.
 		 */
 		self.received404 = new signals.Signal();
@@ -296,6 +302,8 @@ app.modes = (function() {
 		
 		app.messages.info('Loading honeycomb&hellip;');
 		
+		self.firstCell = cells[0];
+		
 		var method = self.methodSelect.getValue();
 		var parameter = self.parameterInput.getValue();
 		
@@ -306,7 +314,10 @@ app.modes = (function() {
 			parameter: parameter
 		}))
 		.done(function(data) {
-			self.map.updateHoneycomb(data.cells);
+			var cells = data.cells;
+			if(self.firstCell[0] == cells[0][0] && self.firstCell[1] == cells[0][1]) {
+				self.map.updateHoneycomb(cells);
+			}
 			app.messages.clear();
 		})
 		.fail(function(xhr) {

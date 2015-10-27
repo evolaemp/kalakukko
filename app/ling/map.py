@@ -1,9 +1,14 @@
 from geopy.distance import EARTH_RADIUS
 
-from app.models import Language
 from app.ling.range_tree import RangeTree
+from app.models import Language
 
 from math import pi, sin, cos, acos, degrees, radians
+
+
+
+class MapError(ValueError):
+	pass
 
 
 
@@ -57,11 +62,18 @@ class Map:
 		"""
 		delta_latitude = 360 * x / (2 * pi * EARTH_RADIUS)
 		
-		delta_longitude = acos(
-			( cos(radians(360 * x / (2 * pi * EARTH_RADIUS))) - sin(radians(latitude)) ** 2 )
-			/ cos(radians(latitude)) ** 2
-		)
-		delta_longitude = degrees(delta_longitude)
+		try:
+			delta_longitude = acos(
+				( cos(radians(360 * x / (2 * pi * EARTH_RADIUS))) - sin(radians(latitude)) ** 2 )
+				/ cos(radians(latitude)) ** 2
+			)
+			delta_longitude = degrees(delta_longitude)
+		except ValueError:
+			"""
+			If the latitude is too close to the ±90 the last cos() will be
+			close to 0 and the division will fail.
+			"""
+			raise MapError('Avoid the (ant)arctic chill.')
 		
 		tetragon = {
 			'north': latitude + delta_latitude,
@@ -74,7 +86,7 @@ class Map:
 			assert tetragon['north'] <= 90
 			assert tetragon['south'] >= -90
 		except AssertionError:
-			raise ValueError('Avoid the (ant)arctic chill.')
+			raise MapError('Avoid the (ant)arctic chill.')
 		
 		return tetragon
 	
@@ -103,7 +115,7 @@ class Map:
 			west_east = self.longitude_tree.search(-180, tetragon['east'])
 			west_east = west_east.union(west)
 		else:
-			raise ValueError('Tetragon ate the Earth.')
+			raise MapError('Tetragon ate the Earth.')
 		
 		return south_north.intersection(west_east)
 	

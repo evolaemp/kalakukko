@@ -21,6 +21,7 @@ class RangeTree:
 		self.tree = RangeTree.create_tree(leaves)
 	
 	
+	@staticmethod
 	def create_tree(leaves):
 		"""
 		Recursively create a tree out of the leaves given.
@@ -67,6 +68,7 @@ class RangeTree:
 		}
 	
 	
+	@staticmethod
 	def search_tree(tree, a, b):
 		"""
 		Recursively search the tree given.

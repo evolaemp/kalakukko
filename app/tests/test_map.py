@@ -5,7 +5,7 @@ from geopy.distance import great_circle
 from hypothesis.strategies import floats, integers, tuples
 from hypothesis import given, assume
 
-from app.ling.map import Map
+from app.ling.map import Map, MapError
 
 
 
@@ -26,6 +26,7 @@ class MapStaticTestCase(TestCase):
 			round(great_circle(a, b).km)
 		)
 	
+	
 	@given(
 		tuples(
 			floats(min_value=-90.0, max_value=90.0), floats(min_value=-180.0, max_value=180)
@@ -39,6 +40,7 @@ class MapStaticTestCase(TestCase):
 			round(Map.great_circle(a, b)),
 			round(great_circle(a, b).km)
 		)
+	
 	
 	def test_make_tetragon(self):
 		for latitude, longitude, x in [
@@ -67,33 +69,42 @@ class MapStaticTestCase(TestCase):
 			self.assertGreater(tetragon['west'], -180)
 			d = great_circle(centre, (latitude, tetragon['west'])).km
 			self.assertEqual(round(d), x)
+		
+		for latitude, longitude, x in [(80, 0, 1500), (-80, 0, 1500)]:
+			with self.assertRaises(MapError):
+				Map.make_tetragon(latitude, longitude, x)
+	
 	
 	@given(
-		floats(min_value=-70.0, max_value=70.0),
+		floats(min_value=-90.0, max_value=90.0),
 		floats(min_value=-180.0, max_value=180.0),
-		integers(min_value=1, max_value=2000)
+		integers(min_value=1, max_value=5000)
 	)
 	def test_make_tetragon_hypothetically(self, latitude, longitude, x):
 		centre = (latitude, longitude)
-		tetragon = Map.make_tetragon(latitude, longitude, x)
 		
-		self.assertGreater(tetragon['north'], latitude)
-		self.assertLess(tetragon['north'], 90)
-		d = great_circle(centre, (tetragon['north'], longitude)).km
-		self.assertEqual(round(d), x)
-		
-		self.assertLess(tetragon['south'], latitude)
-		self.assertGreater(tetragon['south'], -90)
-		d = great_circle(centre, (tetragon['south'], longitude)).km
-		self.assertEqual(round(d), x)
-		
-		self.assertGreater(tetragon['east'], longitude)
-		d = great_circle(centre, (latitude, tetragon['east'])).km
-		self.assertEqual(round(d), x)
-		
-		self.assertLess(tetragon['west'], longitude)
-		d = great_circle(centre, (latitude, tetragon['west'])).km
-		self.assertEqual(round(d), x)
+		try:
+			tetragon = Map.make_tetragon(latitude, longitude, x)
+		except Exception as error:
+			self.assertIsInstance(error, MapError)
+		else:
+			self.assertGreater(tetragon['north'], latitude)
+			self.assertLess(tetragon['north'], 90)
+			d = great_circle(centre, (tetragon['north'], longitude)).km
+			self.assertEqual(round(d), x)
+			
+			self.assertLess(tetragon['south'], latitude)
+			self.assertGreater(tetragon['south'], -90)
+			d = great_circle(centre, (tetragon['south'], longitude)).km
+			self.assertEqual(round(d), x)
+			
+			self.assertGreater(tetragon['east'], longitude)
+			d = great_circle(centre, (latitude, tetragon['east'])).km
+			self.assertEqual(round(d), x)
+			
+			self.assertLess(tetragon['west'], longitude)
+			d = great_circle(centre, (latitude, tetragon['west'])).km
+			self.assertEqual(round(d), x)
 
 
 
@@ -103,6 +114,7 @@ class MapTestCase(TestCase):
 	def setUp(self):
 		self.map = Map()
 	
+	
 	def test_get_nearest(self):
 		iberia = self.map.get_nearest(40, 0, 3)
 		self.assertEqual(iberia, ['es', 'eu', 'pt'])
@@ -111,6 +123,21 @@ class MapTestCase(TestCase):
 		self.assertEqual(elbrus, [
 			'ab', 'os', 'ka', 'ady', 'ddo', 'ce', 'hy', 'dar'
 		])
+	
+	
+	@given(
+		floats(min_value=-90.0, max_value=90.0),
+		floats(min_value=-180.0, max_value=180.0),
+		integers(min_value=1, max_value=42)
+	)
+	def test_get_nearest_returns(self, latitude, longitude, k):
+		try:
+			lang = self.map.get_in_radius(latitude, longitude, k)
+		except Exception as error:
+			self.assertIsInstance(error, MapError)
+		else:
+			self.assertIs(type(lang), set)
+	
 	
 	def test_get_single_nearest(self):
 		iberia = self.map.get_single_nearest(40, 0, 500)
@@ -128,6 +155,24 @@ class MapTestCase(TestCase):
 		andes = self.map.get_single_nearest(-15, -70, 500)
 		self.assertEqual(andes, None)
 	
+	
+	@given(
+		floats(min_value=-90.0, max_value=90.0),
+		floats(min_value=-180.0, max_value=180.0),
+		integers(min_value=1, max_value=5000)
+	)
+	def test_get_single_nearest_returns(self, latitude, longitude, radius):
+		try:
+			lang = self.map.get_single_nearest(latitude, longitude, radius)
+		except Exception as error:
+			self.assertIsInstance(error, MapError)
+		else:
+			try:
+				self.assertIs(type(lang), str)
+			except AssertionError:
+				self.assertIsNone(lang)
+	
+	
 	def test_get_in_radius(self):
 		iceland = self.map.get_in_radius(65, -22, 1000)
 		self.assertEqual(iceland, set(['is']))
@@ -139,6 +184,20 @@ class MapTestCase(TestCase):
 		
 		andes = self.map.get_in_radius(-15, -70, 1000)
 		self.assertEqual(andes, set())
+	
+	
+	@given(
+		floats(min_value=-90.0, max_value=90.0),
+		floats(min_value=-180.0, max_value=180.0),
+		integers(min_value=1, max_value=5000)
+	)
+	def test_get_in_radius_returns(self, latitude, longitude, radius):
+		try:
+			lang = self.map.get_in_radius(latitude, longitude, radius)
+		except Exception as error:
+			self.assertIsInstance(error, MapError)
+		else:
+			self.assertIs(type(lang), set)
 
 
 
