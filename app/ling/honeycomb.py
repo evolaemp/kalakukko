@@ -56,7 +56,7 @@ class Honeycomb:
 			radius = parameter
 			find = planet.get_in_radius
 		else:
-			radius = 500
+			radius = 1000
 			parameter = parameter + 1
 			find = planet.get_nearest
 		

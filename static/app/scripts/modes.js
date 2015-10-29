@@ -27,6 +27,11 @@ app.modes = (function() {
 	 */
 	NormalMode.prototype.unbind = function() {};
 	
+	/**
+	 * Triggers map update.
+	 */
+	NormalMode.prototype.update = function() {};
+	
 	
 	/**
 	 * Handles the state when valid data source file is uploaded.
@@ -47,6 +52,12 @@ app.modes = (function() {
 		
 		self.points = [];
 		self.charts = {};
+		
+		/**
+		 * Needed for self.update().
+		 */
+		self.lastLatitude = null;
+		self.lastLongitude = null;
 		
 		/**
 		 * Fired upon receiving 404 from the server.
@@ -75,8 +86,11 @@ app.modes = (function() {
 	PointMode.prototype.click = function(latitude, longitude) {
 		var self = this;
 		
-		var method = self.methodSelect.getValue();
-		var parameter = self.parameterInput.getValue();
+		var method = self.methodSelect.get();
+		var parameter = self.parameterInput.get();
+		
+		self.lastLatitude = latitude;
+		self.lastLongitude = longitude;
 		
 		self.clearMap();
 		
@@ -248,6 +262,16 @@ app.modes = (function() {
 		self.clearMap();
 	};
 	
+	/**
+	 * Triggers map update.
+	 */
+	PointMode.prototype.update = function() {
+		var self = this;
+		if(self.lastLatitude && self.lastLongitude) {
+			self.click(self.lastLatitude, self.lastLongitude);
+		}
+	};
+	
 	
 	/**
 	 * Handles the state when the honeycomb is requested.
@@ -270,6 +294,11 @@ app.modes = (function() {
 		 * Keeps the first cell of the currently awaited honeycomb.
 		 */
 		self.firstCell = [null, null];
+		
+		/**
+		 * Needed for self.update().
+		 */
+		self.lastCells = null;
 		
 		/**
 		 * Fired upon receiving 404 from the server.
@@ -303,9 +332,10 @@ app.modes = (function() {
 		app.messages.info('Loading honeycomb&hellip;');
 		
 		self.firstCell = cells[0];
+		self.lastCells = cells;
 		
-		var method = self.methodSelect.getValue();
-		var parameter = self.parameterInput.getValue();
+		var method = self.methodSelect.get();
+		var parameter = self.parameterInput.get();
 		
 		$.post('/api/honeycomb/', JSON.stringify({
 			id: self.fileId,
@@ -349,6 +379,16 @@ app.modes = (function() {
 		self.received404.removeAll();
 		self.map.changedViewport.removeAll();
 		self.clearMap();
+	};
+	
+	/**
+	 * Triggers map update.
+	 */
+	HoneycombMode.prototype.update = function() {
+		var self = this;
+		if(self.lastCells) {
+			self.changeViewport(self.lastCells);
+		}
 	};
 	
 	

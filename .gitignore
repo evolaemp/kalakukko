@@ -5,6 +5,7 @@ static/bower_components/*
 static/build/*
 static/node_modules/*
 
+.coverage
 .hypothesis/*
 
 *.pyc

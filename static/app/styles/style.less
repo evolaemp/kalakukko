@@ -44,9 +44,14 @@ button {
 	font-weight: inherit;
 	height: 50px;
 	letter-spacing: normal;
-	line-height: 50px;
+	line-height: 1;
 	margin: 0;
+	padding: 0;
+	text-align: center;
 	text-transform: none;
+	&:hover {
+		color: inherit;
+	}
 }
 
 
@@ -64,6 +69,10 @@ header {
 	.controls {
 		.hidden {
 			visibility: hidden;
+			&.radius-input, &.k-input {
+				display: none;
+				visibility: visible;
+			}
 		}
 		select {
 			margin: 0;
@@ -76,10 +85,51 @@ header {
 		input[type=file] {
 			display: none;
 		}
-		button {
-			padding: 0;
-			text-align: center;
+		button.file-button {
+			border-color: @blue;
 			width: 100%;
+		}
+		.button-group {
+			width: 100%;
+			button {
+				border-color: @blue;
+				border-radius: 0;
+				color: #999;
+				float: left;
+				width: 50%;
+			}
+			button:first-child {
+				border-radius: 4px 0 0 4px;
+			}
+			button:last-child {
+				border-radius: 0 4px 4px 0;
+				border-left: none;
+			}
+			button.active {
+				background-color: @blue;
+				color: white;
+			}
+		}
+		.input-group {
+			width: 100%;
+			button {
+				border-color: @blue;
+				border-radius: 4px 0 0 4px;
+				border-right: none;
+				color: #999;
+				float: left;
+				width: 25%;
+			}
+			input {
+				border-color: @blue;
+				border-radius: 0 4px 4px 0;
+				float: left;
+				height: 50px;
+				line-height: 1;
+				margin: 0;
+				padding: 0 6px;
+				width: 75%;
+			}
 		}
 	}
 }

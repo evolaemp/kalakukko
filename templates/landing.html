@@ -9,27 +9,49 @@ Welcome to Kalakukko!
 {% block controls %}
 <div class="row">
 	<div class="three columns">
-		<select name="variable" class="hidden">
-			<option value="circle">radius</option>
-			<option value="neighbourhood">nearest</option>
-		</select>
+		<div class="parameter-input hidden">
+			<div class="input-group radius-input">
+				<button type="button">r</button>
+				<input type="text"
+					name="value"
+					value="1500"
+					/>
+			</div>
+			<div class="input-group k-input hidden">
+				<button type="button">k</button>
+				<input type="text"
+					name="value"
+					value="10"
+					/>
+			</div>
+		</div>
 	</div>
 	<div class="three columns">
-		<input type="text"
-			name="value"
-			value="1500"
-			class="hidden"
-			/>
+		<div class="button-group method-select hidden">
+			<button type="button"
+				data-value="circle"
+				class="active"
+				>circle</button>
+			<button type="button"
+				data-value="neighbourhood"
+				>ref</button>
+		</div>
 	</div>
 	<div class="three columns">
-		<select name="mode" class="hidden">
-			<option value="point">pointmap</option>
-			<option value="heat">honeycomb</option>
-		</select>
+		<div class="button-group mode-select hidden">
+			<button type="button"
+				data-value="point"
+				class="active"
+				>point</button>
+			<button type="button"
+				data-value="heat"
+				>honey</button>
+		</div>
 	</div>
 	<div class="three columns">
 		<input type="file" name="file" />
 		<button type="button"
+			class="file-button"
 			>set source</button>
 	</div>
 </div>
