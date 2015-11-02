@@ -30,47 +30,57 @@ app.messages = (function() {
 	var Message = function(type, text) {
 		var self = this;
 		
-		// create dom element
 		self.elem = $('<div>'+text+'</div>').addClass('message '+ type);
 		self.elem.appendTo(dom);
-		
-		// private methods
-		self._remove = function() {
-			self.elem.remove();
-		};
 	};
 	
+	/**
+	 * Removes the message's dom element and the reference to the latter.
+	 */
 	Message.prototype.remove = function() {
-		this._remove();
+		var self = this;
+		
+		if(self.elem) {
+			self.elem.remove();
+			self.elem = null;
+		}
 	};
 	
 	
 	/**
 	 * Module init.
 	 */
-	$(document).ready(function() {
+	var init = function() {
 		dom = $('.messages');
-	});
+	};
+	
+	$(document).ready(init);
 	
 	
 	/**
 	 * Module exports.
 	 */
 	var exports = {
+		init: function() {
+			init();
+		},
 		error: function(text) {
 			exports.clear();
 			current = new Message('error', text);
 			setTimeout(exports.clear, 5000);
+			return current;
 		},
 		info: function(text) {
 			exports.clear();
 			current = new Message('info', text);
 			setTimeout(exports.clear, 5000);
+			return current;
 		},
 		success: function(text) {
 			exports.clear();
 			current = new Message('success', text);
 			setTimeout(exports.clear, 5000);
+			return current;
 		},
 		clear: function() {
 			if(current) {

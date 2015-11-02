@@ -64,8 +64,15 @@ class Point:
 		"""
 		globe = Map()
 		
-		origin = globe.get_single_nearest(self.latitude, self.longitude, 1000)
 		languages = globe.get_nearest(self.latitude, self.longitude, k+1)
+		
+		if len(languages) == 0:
+			return None, {}, 0
+		if len(languages) == 1:
+			return languages[0], {}, 0
+		
+		origin = languages[0]
+		languages = languages[1:]
 		
 		d = {}
 		global_d, local_d = [], []

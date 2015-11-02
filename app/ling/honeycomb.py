@@ -1,4 +1,4 @@
-from app.ling.map import Map
+from app.ling.map import Map, MapError
 from app.ling.math import get_correlation
 
 
@@ -6,6 +6,7 @@ from app.ling.math import get_correlation
 class Honeycomb:
 	"""
 	Calculates the swadeshness of each honeycomb cell.
+	Unlike class Point, Honeycomb should not raise errors.
 	"""
 	
 	def __init__(self, cells):
@@ -18,11 +19,16 @@ class Honeycomb:
 	def calculate_on_circles(self, word_matrix, radius):
 		"""
 		Calculates the swadeshness of each cell using the circles method.
+		Cells with less than 6 relevant languages have swadeshness of 0.
 		"""
 		planet = Map()
 		
 		for cell in self.cells:
-			languages = planet.get_in_radius(cell[0], cell[1], radius)
+			try:
+				languages = planet.get_in_radius(cell[0], cell[1], radius)
+			except MapError:
+				cell.append(0)
+				continue
 			
 			if len(languages) < 6:
 				cell.append(0)
@@ -46,37 +52,35 @@ class Honeycomb:
 		return self.cells
 	
 	
-	def calculate(self, word_matrix, method, parameter):
+	def calculate_on_neighbourhoods(self, word_matrix, k):
 		"""
-		The workhorse.
+		Calculates the swadeshness of each cell using the neighbourhood method.
+		Cells with less than 6 relevant languages have swadeshness of 0.
 		"""
 		planet = Map()
 		
-		if method == 'circle':
-			radius = parameter
-			find = planet.get_in_radius
-		else:
-			radius = 1000
-			parameter = parameter + 1
-			find = planet.get_nearest
-		
-		
 		for cell in self.cells:
-			origin = planet.get_single_nearest(cell[0], cell[1], radius)
-			if origin is None:
+			try:
+				languages = planet.get_nearest(cell[0], cell[1], k+1)
+			except MapError:
 				cell.append(0)
 				continue
 			
-			languages = find(cell[0], cell[1], parameter)
+			if len(languages) < 6:
+				cell.append(0)
+				continue
 			
-			a, b = [], []
+			origin = languages[0]
+			languages = languages[1:]
+			
+			global_d, local_d = [], []
 			for language in languages:
 				distance_pair = word_matrix.get_distances(origin, language)
 				if distance_pair is not None:
-					a.append(distance_pair[0])
-					b.append(distance_pair[1])
+					global_d.append(distance_pair[0])
+					local_d.append(distance_pair[1])
 			
-			cell.append(get_correlation(a, b))
+			cell.append(get_correlation(global_d, local_d))
 		
 		return self.cells
 

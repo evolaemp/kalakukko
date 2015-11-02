@@ -123,11 +123,11 @@ class Map:
 	def get_nearest(self, latitude, longitude, k):
 		"""
 		Returns list of the nearest k languages to the coords given.
-		Assumes that nearest languages do not lie further than 1000 kilometers.
+		Assumes that nearest languages do not lie further than 2000 kilometers.
 		"""
 		origin = (latitude, longitude,)
 		
-		possible_lang = self.get_in_tetragon(latitude, longitude, 1000)
+		possible_lang = self.get_in_radius(latitude, longitude, 2000)
 		
 		languages = []
 		distances = []
@@ -154,14 +154,15 @@ class Map:
 		return languages
 	
 	
-	def get_single_nearest(self, latitude, longitude, r):
+	def get_single_nearest(self, latitude, longitude, radius=2000):
 		"""
 		Returns the nearest language (if such) within the radius given.
 		The radius is measured in kilometers.
+		Assumes that nearest languages do not lie further than 2000 kilometers.
 		"""
 		origin = (latitude, longitude)
 		
-		possible_lang = self.get_in_tetragon(latitude, longitude, r)
+		possible_lang = self.get_in_radius(latitude, longitude, radius)
 		
 		nearest_lang = None
 		smallest_dist = None
@@ -177,20 +178,20 @@ class Map:
 		return nearest_lang
 	
 	
-	def get_in_radius(self, latitude, longitude, r):
+	def get_in_radius(self, latitude, longitude, radius):
 		"""
 		Returns set of the languages within radius r of the coords given.
 		The radius is measured in kilometres.
 		"""
 		origin = (latitude, longitude,)
 		
-		possible_lang = self.get_in_tetragon(latitude, longitude, r)
+		possible_lang = self.get_in_tetragon(latitude, longitude, radius)
 		
 		s = set()
 		
 		for iso_code in possible_lang:
 			coords = self.languages[iso_code]
-			if Map.great_circle(origin, coords) <= r:
+			if Map.great_circle(origin, coords) <= radius:
 				s.add(iso_code)
 		
 		return s

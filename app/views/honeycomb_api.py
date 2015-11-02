@@ -46,11 +46,11 @@ class HoneycombApiView(View):
 		honeycomb = Honeycomb(post['cells'])
 		
 		if post['method'] == 'circle':
-			cells = honeycomb.calculate_on_circles(matrix, post['parameter'])
+			honeycomb.calculate_on_circles(matrix, post['parameter'])
 		else:
-			cells = honeycomb.calculate(matrix, post['method'], post['parameter'])
+			honeycomb.calculate_on_neighbourhoods(matrix, post['parameter'])
 		
-		return JsonResponse({'cells': cells}, status=200)
+		return JsonResponse({'cells': honeycomb.cells}, status=200)
 	
 	
 	def validate_post(self, request_body):
@@ -75,6 +75,7 @@ class HoneycombApiView(View):
 		try:
 			assert 'cells' in post
 			assert type(post['cells']) is list
+			assert len(post['cells']) <= 10000
 			for cell in post['cells']:
 				assert type(cell) is list
 				assert len(cell) == 2

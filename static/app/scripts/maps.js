@@ -26,6 +26,7 @@ app.maps = (function() {
 		self.dom = dom;
 		self.map = L.map(self.dom.get(0), {
 			center: [42, 42],
+			maxZoom: 12,
 			zoom: 5,
 			zoomControl: false
 		});
@@ -57,8 +58,7 @@ app.maps = (function() {
 			{
 				attribution: '<a href="http://openstreetmap.org">OpenStreetMap</a>',
 				accessToken: OSM_ACCESS_TOKEN,
-				id: OSM_ID,
-				maxZoom: 15
+				id: OSM_ID
 			}
 		).addTo(self.map);
 	};

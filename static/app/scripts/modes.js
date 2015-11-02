@@ -329,7 +329,7 @@ app.modes = (function() {
 	HoneycombMode.prototype.changeViewport = function(cells) {
 		var self = this;
 		
-		app.messages.info('Loading honeycomb&hellip;');
+		var message = app.messages.info('Loading honeycomb&hellip;');
 		
 		self.firstCell = cells[0];
 		self.lastCells = cells;
@@ -348,7 +348,7 @@ app.modes = (function() {
 			if(self.firstCell[0] == cells[0][0] && self.firstCell[1] == cells[0][1]) {
 				self.map.updateHoneycomb(cells);
 			}
-			app.messages.clear();
+			message.remove();
 		})
 		.fail(function(xhr) {
 			var error = "Could not connect to server!";
