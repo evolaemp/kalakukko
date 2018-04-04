@@ -1,7 +1,7 @@
-coverage==4.0.1
-Django==1.8.5
-geopy==1.11.0
-gunicorn==19.3.0
+coverage==4.5.1
+Django==1.11.12
+geopy==1.12.0
+gunicorn==19.7.1
 hypothesis==1.12.0
-pytz==2015.6
+pytz==2018.3
 selenium==2.48.0
