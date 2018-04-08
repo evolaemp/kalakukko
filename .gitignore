@@ -1,6 +1,9 @@
 development/*
-project/settings_local.py
+meta/*
+
 media/*
+project/settings_local.py
+
 static/bower_components/*
 static/build/*
 static/node_modules/*
